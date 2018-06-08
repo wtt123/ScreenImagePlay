@@ -61,15 +61,18 @@ public class MainActivity extends BaseActivity {
     private TcpServer mTcpServer;
     private String TAG = "wtt";
     private Context mContext;
-    private Handler mHandler=new Handler(){
+    private Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
-          switch (msg.what){
-              case 1:
-                  break;
-          }
+            switch (msg.what) {
+                case 1:
+                    rlCode.setVisibility(View.GONE);
+                    sfView.setVisibility(View.VISIBLE);
+                    break;
+            }
         }
     };
+
     @Override
     protected int getLayoutId() {
         return R.layout.activity_main;
@@ -174,8 +177,9 @@ public class MainActivity extends BaseActivity {
         public void acceptTcpConnect() {
             //接收到客户端的连接...
             Log.e(TAG, "接收到客户端的连接...");
-//            rlCode.setVisibility(View.GONE);
-//            sfView.setVisibility(View.VISIBLE);
+            Message msg = new Message();
+            msg.what = 1;
+            mHandler.sendMessage(msg);
         }
 
         @Override
