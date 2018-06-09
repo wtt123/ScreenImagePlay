@@ -38,6 +38,7 @@ public class TcpServer {
                     InetSocketAddress socketAddress = new InetSocketAddress(tcpPort);
                     serverSocket.bind(socketAddress);
                     while (isAccept) {
+                        //服务端接收客户端的连接请求
                         Socket socket = serverSocket.accept();
                         //开启接收消息线程
                         acceptMsgThread = new AcceptMsgThread(socket.getInputStream(),

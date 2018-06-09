@@ -69,6 +69,10 @@ public class MainActivity extends BaseActivity {
                     rlCode.setVisibility(View.GONE);
                     sfView.setVisibility(View.VISIBLE);
                     break;
+                case 2:
+                    rlCode.setVisibility(View.VISIBLE);
+                    sfView.setVisibility(View.GONE);
+                    break;
             }
         }
     };
@@ -172,7 +176,6 @@ public class MainActivity extends BaseActivity {
 
     //客户端Tcp连接状态的回调...
     class MyAcceptTcpStateListener implements OnAcceptTcpStateChangeListener {
-
         @Override
         public void acceptTcpConnect() {
             //接收到客户端的连接...
@@ -186,6 +189,9 @@ public class MainActivity extends BaseActivity {
         public void acceptTcpDisConnect(Exception e) {
             //客户端的连接断开...
             Log.e(TAG, "客户端的连接断开..." + e.toString());
+            Message msg=new Message();
+            msg.what=2;
+            mHandler.sendMessage(msg);
         }
     }
 
