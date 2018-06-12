@@ -21,6 +21,7 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
 import com.test.screenimageplay.R;
+import com.test.screenimageplay.constant.ScreenImageApi;
 import com.test.screenimageplay.core.BaseActivity;
 import com.test.screenimageplay.decode.DecodeThread;
 import com.test.screenimageplay.entity.Frame;
@@ -130,6 +131,7 @@ public class MainActivity extends BaseActivity {
         });
     }
 
+    // TODO: 2018/6/12 wt用于本地测试
     private void initialFIle() {
         //本地生成一个音频文件
         File file = new File(Environment.getExternalStorageDirectory(), "test.aac");
@@ -148,6 +150,9 @@ public class MainActivity extends BaseActivity {
         //开启服务
         mPlayqueue = new NormalPlayQueue();
         mTcpServer = new TcpServer();
+        //发送初始化成功指令
+        mTcpServer.setBackpassBody(ScreenImageApi.RECORD.MAIN_CMD,
+                ScreenImageApi.RECORD.INITIAL_SUCCESS,"初始化成功",new byte[0]);
         mTcpServer.setOnAccepttBuffListener(new MyAcceptBuffListener());
         mTcpServer.setOnTcpConnectListener(new MyAcceptTcpStateListener());
         mTcpServer.startServer();

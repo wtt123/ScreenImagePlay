@@ -22,6 +22,7 @@ public class TcpServer {
     private ServerSocket serverSocket;
     private int tcpPort = 11111;
     private boolean isAccept = true;
+    private EncodeV1 mEncodeV1;
     private OnAcceptBuffListener mListener;
     private OnAcceptTcpStateChangeListener mConnectListener;
     private AcceptMsgThread acceptMsgThread;
@@ -42,7 +43,7 @@ public class TcpServer {
                         Socket socket = serverSocket.accept();
                         //开启接收消息线程
                         acceptMsgThread = new AcceptMsgThread(socket.getInputStream(),
-                                socket.getOutputStream(), mListener, mConnectListener);
+                                socket.getOutputStream(),mEncodeV1,mListener, mConnectListener);
                         acceptMsgThread.start();
                     }
                 } catch (Exception e) {
@@ -53,6 +54,17 @@ public class TcpServer {
         }.start();
     }
 
+    /**
+     * TODO: 2018/6/12 wt像客户端回传消息
+     * @param mainCmd 主指令
+     * @param subCmd 子指令
+     * @param sendBody 文本内容
+     * @param sendBuffer byte内容
+     */
+    public void setBackpassBody(int mainCmd, int subCmd, String sendBody,
+                                byte[] sendBuffer){
+        mEncodeV1=new EncodeV1(mainCmd,subCmd,sendBody,sendBuffer);
+    }
     public void setOnAccepttBuffListener(OnAcceptBuffListener listener) {
         this.mListener = listener;
     }
