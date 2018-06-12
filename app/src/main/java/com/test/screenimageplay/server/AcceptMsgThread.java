@@ -5,6 +5,8 @@ import android.util.Log;
 
 import com.test.screenimageplay.constant.ScreenImageApi;
 import com.test.screenimageplay.entity.Frame;
+import com.test.screenimageplay.entity.ReceiveData;
+import com.test.screenimageplay.entity.ReceiveHeader;
 import com.test.screenimageplay.server.interf.OnAcceptBuffListener;
 import com.test.screenimageplay.server.interf.OnAcceptTcpStateChangeListener;
 import com.test.screenimageplay.utils.AnalyticDataUtils;
@@ -21,7 +23,7 @@ import java.io.OutputStream;
  * Created by wt on 2018/6/7.
  * 接收消息,执行操作线程
  */
-public class AcceptMsgThread extends Thread {
+public class AcceptMsgThread extends Thread implements AnalyticDataUtils.OnAnalyticDataListener {
     private InputStream InputStream;
     private OutputStream outputStream;
     private EncodeV1 mEncodeV1;
@@ -29,6 +31,7 @@ public class AcceptMsgThread extends Thread {
     private OnAcceptBuffListener listener;
     private OnAcceptTcpStateChangeListener mStateChangeListener;
     private DecodeUtils mDecoderUtils;
+    private AnalyticDataUtils mAnalyticDataUtils;
     private String TAG = "AcceptMsgThread";
 
     public AcceptMsgThread(InputStream is, OutputStream outputStream, EncodeV1 encodeV1, OnAcceptBuffListener
@@ -39,6 +42,8 @@ public class AcceptMsgThread extends Thread {
         this.listener = listener;
         this.mStateChangeListener = disconnectListenerlistener;
         mDecoderUtils = new DecodeUtils();
+        mAnalyticDataUtils = new AnalyticDataUtils();
+        mAnalyticDataUtils.setOnAnalyticDataListener(this);
         mDecoderUtils.setOnVideoListener(new DecodeUtils.OnVideoListener() {
             @Override
             public void onSpsPps(byte[] sps, byte[] pps) {
@@ -88,36 +93,25 @@ public class AcceptMsgThread extends Thread {
             if (mStateChangeListener != null) mStateChangeListener.acceptTcpConnect();
             while (startFlag) {
                 //开始接收客户端发过来的数据
-//                byte[] length = readByte(InputStream, 4);
-                byte[] length = AnalyticDataUtils.readByte(InputStream, 18);
-                //数据如果为空，则休眠，防止cpu为空
-                if (length.length == 0) {
+                byte[] header = mAnalyticDataUtils.readByte(InputStream, 18);
+                //数据如果为空，则休眠，防止cpu空转,  0.0 不可能会出现的,会一直阻塞在之前
+                if (header.length == 0) {
                     SystemClock.sleep(1);
                     continue;
                 }
-                byte netVersion = length[0];
-                Log.e("wtt", "run: "+netVersion );
-                if (netVersion == ScreenImageApi.encodeVersion1) {
-                    //解析拆分数据
-                    BufferedInputStream inputStream = new BufferedInputStream(InputStream);
-                     AnalyticDataUtils.AnalyticData(inputStream, length,
-                            new AnalyticDataUtils.onAnalyticDataListener() {
-                                @Override
-                                public void onSuccess(int mainCmd, int subCmd, String sendBody,
-                                                      int sendBuffer) throws IOException {
-                                    Log.e("wtt", "onSuccess: "+sendBuffer );
-                                    byte[] buff =AnalyticDataUtils.readByte(InputStream, sendBuffer);
-                                    //区分帧信息
-                                    mDecoderUtils.isCategory(buff);
-                                }
-                            });
-                } else {
-                    Log.e("wtt", "run: 收到消息无法解析");
+                ReceiveHeader receiveHeader = mAnalyticDataUtils.analysisHeader(header);
+                if (receiveHeader.getStringBodylength() == 0 && receiveHeader.getBuffSize() == 0) {
+                    SystemClock.sleep(1);
+                    continue;
                 }
-//                int buffLength = bytesToInt(length);
-//                byte[] buff = readByte(InputStream, buffLength);
-//                //区分帧信息
-//                mDecoderUtils.isCategory(buff);
+                if (receiveHeader.getEncodeVersion() != ScreenImageApi.encodeVersion1) {
+                    Log.e(TAG, "接收到的数据格式不对...");
+                    continue;
+                }
+                //TODO 可以处理主指令和子指令操作
+                Log.e("wtt", "run: " + receiveHeader.getEncodeVersion());
+                //解析拆分数据
+                mAnalyticDataUtils.analyticData(InputStream, receiveHeader);
             }
         } catch (Exception e) {
             if (mStateChangeListener != null) {
@@ -129,26 +123,14 @@ public class AcceptMsgThread extends Thread {
     }
 
 
-
-
-//    /**
-//     * byte数组中取int数值，本方法适用于(低位在前，高位在后)的顺序，和和intToBytes（）配套使用
-//     *
-//     * @param src byte数组
-//     * @return int数值
-//     */
-//    public static int bytesToInt(byte[] src) {
-//        int value;
-//        value = (int) ((src[0] & 0xFF)
-//                | ((src[1] & 0xFF) << 8)
-//                | ((src[2] & 0xFF) << 16)
-//                | ((src[3] & 0xFF) << 24));
-//        return value;
-//    }
-
     public void shutdown() {
         startFlag = false;
         //中断非阻塞状态线程
         this.interrupt();
+    }
+
+    @Override
+    public void onSuccess(ReceiveData data) {
+        mDecoderUtils.isCategory(data.getBuff());
     }
 }
