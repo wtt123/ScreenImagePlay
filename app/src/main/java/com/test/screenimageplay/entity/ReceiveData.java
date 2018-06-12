@@ -1,8 +1,8 @@
 package com.test.screenimageplay.entity;
 
 /**
- * Created by xu.wang
- * Date on  2018/6/12 14:15:37.
+ * Created by wt
+ * Date on  2018/6/12
  *
  * @Desc 返回一组解析后的数据
  */

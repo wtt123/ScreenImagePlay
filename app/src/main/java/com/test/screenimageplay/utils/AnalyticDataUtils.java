@@ -48,9 +48,11 @@ public class AnalyticDataUtils {
     public void analyticData(InputStream is, ReceiveHeader receiveHeader) throws IOException {
         byte[] sendBody = null;
         byte[] buff = null;
+        //文本长度
         if (receiveHeader.getStringBodylength() != 0) {
             sendBody = readByte(is, receiveHeader.getStringBodylength());
         }
+        //音视频长度
         if (receiveHeader.getBuffSize() != 0) {
             buff = readByte(is, receiveHeader.getBuffSize());
         }

@@ -99,6 +99,7 @@ public class AcceptMsgThread extends Thread implements AnalyticDataUtils.OnAnaly
                     SystemClock.sleep(1);
                     continue;
                 }
+                //根据协议分析数据头
                 ReceiveHeader receiveHeader = mAnalyticDataUtils.analysisHeader(header);
                 if (receiveHeader.getStringBodylength() == 0 && receiveHeader.getBuffSize() == 0) {
                     SystemClock.sleep(1);
@@ -131,6 +132,10 @@ public class AcceptMsgThread extends Thread implements AnalyticDataUtils.OnAnaly
 
     @Override
     public void onSuccess(ReceiveData data) {
+        if (data==null){
+            return;
+        }
+        //区分音视频
         mDecoderUtils.isCategory(data.getBuff());
     }
 }
