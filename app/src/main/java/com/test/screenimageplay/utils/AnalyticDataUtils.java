@@ -52,7 +52,7 @@ public class AnalyticDataUtils {
         if (receiveHeader.getStringBodylength() != 0) {
             sendBody = readByte(is, receiveHeader.getStringBodylength());
         }
-        //音视频长度
+
         if (receiveHeader.getBuffSize() != 0) {
             buff = readByte(is, receiveHeader.getBuffSize());
         }
