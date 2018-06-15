@@ -30,7 +30,6 @@ public class AcceptMsgThread extends Thread implements AnalyticDataUtils.OnAnaly
     private DecodeUtils mDecoderUtils;
     private AnalyticDataUtils mAnalyticDataUtils;
     //当前投屏线程
-    private AcceptMsgThread acceptMsgThread;
     private String TAG = "AcceptMsgThread";
 
     public AcceptMsgThread(InputStream is, OutputStream outputStream, EncodeV1 encodeV1, OnAcceptBuffListener
@@ -84,19 +83,18 @@ public class AcceptMsgThread extends Thread implements AnalyticDataUtils.OnAnaly
 
 
     // TODO: 2018/6/14 向客户端回传初始化成功标识
-    public void sendStartMessage(AcceptMsgThread acceptMsgThread) {
-        this.acceptMsgThread=acceptMsgThread;
+    public void sendStartMessage() {
         //告诉客户端我已经初始化成功
         byte[] content = mEncodeV1.buildSendContent();
         try {
             outputStream.write(content);
             if (mStateChangeListener != null) {
-                mStateChangeListener.acceptTcpConnect(acceptMsgThread);
+                mStateChangeListener.acceptTcpConnect(this);
             }
 
         } catch (IOException e) {
             if (mStateChangeListener != null) {
-                mStateChangeListener.acceptTcpDisConnect(e,acceptMsgThread);
+                mStateChangeListener.acceptTcpDisConnect(e, this);
             }
         }
     }
@@ -161,7 +159,8 @@ public class AcceptMsgThread extends Thread implements AnalyticDataUtils.OnAnaly
             }
         } catch (Exception e) {
             if (mStateChangeListener != null) {
-                mStateChangeListener.acceptTcpDisConnect(e, acceptMsgThread);
+//                mStateChangeListener.acceptTcpDisConnect(e, acceptMsgThread);
+                mStateChangeListener.acceptTcpDisConnect(e, this);
             }
         } finally {
             startFlag = false;

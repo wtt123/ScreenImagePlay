@@ -20,7 +20,7 @@ import java.util.List;
  * @Desc 创建服务监听
  */
 
-public class TcpServer{
+public class TcpServer {
     private ServerSocket serverSocket;
     private int tcpPort = 11111;
     private boolean isAccept = true;
@@ -61,7 +61,7 @@ public class TcpServer{
                         if (acceptMsgThreadList.size() != 0) {
                             //默认先发送成功标识给第一个客户端
                             if (!isConnect) {
-                                isConnect=true;
+                                isConnect = true;
                                 acceptMsgThreadList.get(0).sendStartMessage(acceptMsgThreadList.get(0));
                             }
                         }
@@ -118,28 +118,27 @@ public class TcpServer{
     }
 
     // TODO: 2018/6/15 wt 连接中逻辑
-    public void setacceptTcpConnect(AcceptMsgThread acceptMsgThread){
+    public void setacceptTcpConnect(AcceptMsgThread acceptMsgThread) {
         //投屏正在连接
         Log.e("123", "acceptTcpConnect: zzz");
 //        isConnect = true;
     }
 
     // TODO: 2018/6/15 wt连接断开逻辑
-    public void setacceptTcpDisConnect(AcceptMsgThread acceptMsgThread){
+    public void setacceptTcpDisConnect(AcceptMsgThread acceptMsgThread) {
         //连接断开
-        acceptMsgThreadList.remove(acceptMsgThread);
-        Log.e("123", "acceptTcpDisConnect: 个数"+acceptMsgThreadList.size());
-        if (acceptMsgThreadList==null||acceptMsgThreadList.size()==0){
+        boolean remove = acceptMsgThreadList.remove(acceptMsgThread);
+        Log.e("123", "移除成功" + remove + "acceptTcpDisConnect: 个数" + acceptMsgThreadList.size());
+        if (acceptMsgThreadList == null || acceptMsgThreadList.size() == 0) {
             return;
         }
         //如果停止的不是正在投屏的线程，就不再去走下面的方法
-        if (acceptMsgThread!=acceptMsgThreadList.get(0)){
+        if (acceptMsgThread != acceptMsgThreadList.get(0)) {
             return;
         }
         acceptMsgThreadList.get(0).sendStartMessage(acceptMsgThreadList.get(0));
 
     }
-
 
 
 }
