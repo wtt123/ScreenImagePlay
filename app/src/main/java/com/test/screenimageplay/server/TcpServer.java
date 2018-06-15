@@ -62,7 +62,7 @@ public class TcpServer {
                             //默认先发送成功标识给第一个客户端
                             if (!isConnect) {
                                 isConnect = true;
-                                acceptMsgThreadList.get(0).sendStartMessage(acceptMsgThreadList.get(0));
+                                acceptMsgThreadList.get(0).sendStartMessage();
                             }
                         }
 
@@ -136,7 +136,7 @@ public class TcpServer {
         if (acceptMsgThread != acceptMsgThreadList.get(0)) {
             return;
         }
-        acceptMsgThreadList.get(0).sendStartMessage(acceptMsgThreadList.get(0));
+        acceptMsgThreadList.get(0).sendStartMessage();
 
     }
 
