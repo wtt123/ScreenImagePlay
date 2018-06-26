@@ -30,7 +30,7 @@ public class AcceptMsgThread extends Thread implements AnalyticDataUtils.OnAnaly
     private DecodeUtils mDecoderUtils;
     private AnalyticDataUtils mAnalyticDataUtils;
     //当前投屏线程
-    private String TAG = "AcceptMsgThread";
+    private String TAG = "wtt";
 
     public AcceptMsgThread(InputStream is, OutputStream outputStream, EncodeV1 encodeV1, OnAcceptBuffListener
             listener, OnAcceptTcpStateChangeListener disconnectListenerlistener) {
@@ -82,8 +82,8 @@ public class AcceptMsgThread extends Thread implements AnalyticDataUtils.OnAnaly
     }
 
 
-    // TODO: 2018/6/14 向客户端回传初始化成功标识
-    public void sendStartMessage() {
+    // TODO: 2018/6/14 向客户端回传初始化成功标识 @param size 当前线程集合里的投屏设备数量
+    public void sendStartMessage(int size) {
         //告诉客户端我已经初始化成功
         byte[] content = mEncodeV1.buildSendContent();
         try {
@@ -94,7 +94,14 @@ public class AcceptMsgThread extends Thread implements AnalyticDataUtils.OnAnaly
 
         } catch (IOException e) {
             if (mStateChangeListener != null) {
-                mStateChangeListener.acceptTcpDisConnect(e, this);
+                Log.e(TAG, "sendStartMessage: 断开2" );
+                if (size > 1) {
+                    mStateChangeListener.acceptTcpDisConnect(e, this,
+                            false);
+                } else {
+                    mStateChangeListener.acceptTcpDisConnect(e, this,
+                            true);
+                }
             }
         }
     }
@@ -103,35 +110,6 @@ public class AcceptMsgThread extends Thread implements AnalyticDataUtils.OnAnaly
     public void run() {
         super.run();
         readMessage();
-//        while (startFlag) {
-//            //开始接收客户端发过来的数据
-//            byte[] header = new byte[0];
-//            try {
-//                header = mAnalyticDataUtils.readByte(InputStream, 18);
-//                //数据如果为空，则休眠，防止cpu空转,  0.0 不可能会出现的,会一直阻塞在之前
-//                if (header.length == 0) {
-//                    SystemClock.sleep(1);
-//                    continue;
-//                }
-//                //根据协议分析数据头
-//                ReceiveHeader receiveHeader = mAnalyticDataUtils.analysisHeader(header);
-//                if (receiveHeader.getStringBodylength() == 0 && receiveHeader.getBuffSize() == 0) {
-//                    SystemClock.sleep(1);
-//                    continue;
-//                }
-//                if (receiveHeader.getEncodeVersion() != ScreenImageApi.encodeVersion1) {
-//                    Log.e(TAG, "接收到的数据格式不对...");
-//                    continue;
-//                }
-//                //TODO 可以处理主指令和子指令操作
-//                Log.e("wtt", "run: " + receiveHeader.getEncodeVersion());
-//                //解析拆分数据
-//                mAnalyticDataUtils.analyticData(InputStream, receiveHeader);
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//
-//        }
     }
 
     // TODO: 2018/6/14 去读取数据
@@ -159,8 +137,8 @@ public class AcceptMsgThread extends Thread implements AnalyticDataUtils.OnAnaly
             }
         } catch (Exception e) {
             if (mStateChangeListener != null) {
-//                mStateChangeListener.acceptTcpDisConnect(e, acceptMsgThread);
-                mStateChangeListener.acceptTcpDisConnect(e, this);
+                Log.e(TAG, "readMessage: 断开1");
+                mStateChangeListener.acceptTcpDisConnect(e, this,true);
             }
         } finally {
             startFlag = false;

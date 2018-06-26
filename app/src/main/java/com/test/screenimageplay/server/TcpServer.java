@@ -30,7 +30,10 @@ public class TcpServer {
     private AcceptMsgThread acceptMsgThread;
     //把线程给添加进来
     private List<AcceptMsgThread> acceptMsgThreadList;
+    //目前连接状态
     private boolean isConnect = false;
+    //是否需要去更新界面
+    private boolean isUpdateUI=false;
 
     public TcpServer() {
         this.acceptMsgThreadList = new ArrayList<>();
@@ -62,7 +65,7 @@ public class TcpServer {
                             //默认先发送成功标识给第一个客户端
                             if (!isConnect) {
                                 isConnect = true;
-                                acceptMsgThreadList.get(0).sendStartMessage();
+                                acceptMsgThreadList.get(0).sendStartMessage(acceptMsgThreadList.size());
                             }
                         }
 
@@ -128,7 +131,7 @@ public class TcpServer {
     public void setacceptTcpDisConnect(AcceptMsgThread acceptMsgThread) {
         //连接断开
         boolean remove = acceptMsgThreadList.remove(acceptMsgThread);
-        Log.e("123", "移除成功" + remove + "acceptTcpDisConnect: 个数" + acceptMsgThreadList.size());
+        Log.e("wtt", "移除成功" + remove + "acceptTcpDisConnect: 个数" + acceptMsgThreadList.size());
         if (acceptMsgThreadList == null || acceptMsgThreadList.size() == 0) {
             return;
         }
@@ -136,9 +139,11 @@ public class TcpServer {
         if (acceptMsgThread != acceptMsgThreadList.get(0)) {
             return;
         }
-        acceptMsgThreadList.get(0).sendStartMessage();
 
+        //开启第下一个投屏
+        acceptMsgThreadList.get(0).sendStartMessage(acceptMsgThreadList.size());
     }
+
 
 
 }
