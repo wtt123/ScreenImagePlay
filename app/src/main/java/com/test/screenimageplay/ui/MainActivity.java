@@ -10,6 +10,7 @@ import android.net.Uri;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
@@ -20,6 +21,8 @@ import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
@@ -83,6 +86,7 @@ public class MainActivity extends BaseActivity implements OnAcceptTcpStateChange
         }
     };
 
+
     @Override
     protected int getLayoutId() {
         return R.layout.activity_main;
@@ -97,6 +101,7 @@ public class MainActivity extends BaseActivity implements OnAcceptTcpStateChange
         mPlayqueue = new NormalPlayQueue();
         mSurfaceHolder = sfView.getHolder();
         mSurfaceHolder.addCallback(new SurfaceHolder.Callback() {
+            @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
             @Override
             public void surfaceCreated(SurfaceHolder holder) {
                 //Surface创建时激发，一般在这里调用画面的线程
@@ -184,6 +189,7 @@ public class MainActivity extends BaseActivity implements OnAcceptTcpStateChange
     }
 
 
+    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     private void initialMediaCodec(SurfaceHolder holder) {
         //初始化解码器
         Log.e(TAG, "initial play queue");
@@ -194,9 +200,10 @@ public class MainActivity extends BaseActivity implements OnAcceptTcpStateChange
         mDecodeThread.start();
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
+    // TODO: 2018/6/27 释放资源
     public void releaseMediaCodec() {
         mPlayqueue.stop();
-//        videoMediaCodec.release();
         mDecodeThread.shutdown();
 
     }
@@ -215,13 +222,11 @@ public class MainActivity extends BaseActivity implements OnAcceptTcpStateChange
 
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     @Override
-    public void acceptTcpDisConnect(Exception e, AcceptMsgThread acceptMsgThread, boolean updateUI) {
+    public void acceptTcpDisConnect(Exception e, AcceptMsgThread acceptMsgThread) {
         //客户端的连接断开...
         Log.e(TAG, "客户端的连接断开..." + e.toString());
-//        if (videoMediaCodec != null) videoMediaCodec.release();
         mTcpServer.setacceptTcpDisConnect(acceptMsgThread);
-        if (updateUI) {
-            //更新页面
+        if (mTcpServer.currentSize()<1){
             Message msg = new Message();
             msg.what = 2;
             mHandler.sendMessage(msg);

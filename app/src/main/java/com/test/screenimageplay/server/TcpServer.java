@@ -60,18 +60,17 @@ public class TcpServer {
                         acceptMsgThread.start();
                         //把线程添加到集合中去
                         acceptMsgThreadList.add(acceptMsgThread);
-                        Log.e("123", "run: " + acceptMsgThreadList.size());
-                        //默认先发送成功标识给第一个客户端
-                        if (acceptMsgThreadList.size() > 1) {
+                        Log.e("wt", "run: " + acceptMsgThreadList.size());
+                         if (acceptMsgThreadList.size() > 1) {
                             isConnect = true;
                             continue;
                         }
-                        acceptMsgThreadList.get(0).sendStartMessage(acceptMsgThreadList.size());
+                        //默认先发送成功标识给第一个客户端
+                        acceptMsgThreadList.get(0).sendStartMessage();
                     }
                 } catch (Exception e) {
                     Log.e("TcpServer", "" + e.toString());
                 }
-
             }
         }.start();
     }
@@ -139,8 +138,16 @@ public class TcpServer {
         }
 
         //开启第下一个投屏
-        acceptMsgThreadList.get(0).sendStartMessage(acceptMsgThreadList.size());
+        acceptMsgThreadList.get(0).sendStartMessage();
     }
 
+
+    // TODO: 2018/6/27 返回当前设备集合数量
+    public int currentSize() {
+        if (acceptMsgThreadList == null) {
+            return 0;
+        }
+        return acceptMsgThreadList.size();
+    }
 
 }

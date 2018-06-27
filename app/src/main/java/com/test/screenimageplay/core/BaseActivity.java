@@ -4,7 +4,10 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 
+import com.test.screenimageplay.utils.StatusBarUtil;
 import com.test.screenimageplay.utils.SupportMultipleScreensUtil;
 import com.test.screenimageplay.utils.ToastUtils;
 
@@ -22,6 +25,8 @@ public abstract class BaseActivity extends AppCompatActivity implements View.OnC
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getLayoutId() != 0) {
+            StatusBarUtil.transparencyBar(this);
+//            StatusBarUtil.StatusBarLightMode(this);
             setContentView(getLayoutId());
             View rootView = findViewById(android.R.id.content);
             SupportMultipleScreensUtil.scale(rootView);

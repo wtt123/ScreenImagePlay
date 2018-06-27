@@ -30,7 +30,7 @@ public class AcceptMsgThread extends Thread implements AnalyticDataUtils.OnAnaly
     private DecodeUtils mDecoderUtils;
     private AnalyticDataUtils mAnalyticDataUtils;
     //当前投屏线程
-    private String TAG = "AcceptMsgThread";
+    private String TAG = "wt";
 
     public AcceptMsgThread(InputStream is, OutputStream outputStream, EncodeV1 encodeV1, OnAcceptBuffListener
             listener, OnAcceptTcpStateChangeListener disconnectListenerlistener) {
@@ -84,7 +84,8 @@ public class AcceptMsgThread extends Thread implements AnalyticDataUtils.OnAnaly
 
 
     // TODO: 2018/6/14 向客户端回传初始化成功标识 @param size 当前线程集合里的投屏设备数量
-    public void sendStartMessage(int size) {
+    public void sendStartMessage() {
+        Log.e(TAG, "sendStartMessage: 发送成功标识");
         //告诉客户端我已经初始化成功
         byte[] content = mEncodeV1.buildSendContent();
         try {
@@ -95,14 +96,8 @@ public class AcceptMsgThread extends Thread implements AnalyticDataUtils.OnAnaly
 
         } catch (IOException e) {
             if (mStateChangeListener != null) {
-                Log.e(TAG, "sendStartMessage: 断开2" );
-                if (size > 1) {
-                    mStateChangeListener.acceptTcpDisConnect(e, this,
-                            false);
-                } else {
-                    mStateChangeListener.acceptTcpDisConnect(e, this,
-                            true);
-                }
+                Log.e(TAG, "sendStartMessage: 断开2");
+                mStateChangeListener.acceptTcpDisConnect(e, this);
             }
         }
     }
@@ -139,7 +134,7 @@ public class AcceptMsgThread extends Thread implements AnalyticDataUtils.OnAnaly
         } catch (Exception e) {
             if (mStateChangeListener != null) {
                 Log.e(TAG, "readMessage: = " + e.toString());
-                mStateChangeListener.acceptTcpDisConnect(e, this,true);
+                mStateChangeListener.acceptTcpDisConnect(e, this);
             }
         } finally {
             startFlag = false;
