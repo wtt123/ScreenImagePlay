@@ -94,7 +94,27 @@ public class MainActivity extends BaseActivity implements OnAcceptTcpStateChange
         initialFIle();
         startServer();
         //surface保证他们进行交互，当surface销毁之后，surfaceholder断开surface及其客户端的联系
+        mPlayqueue = new NormalPlayQueue();
         mSurfaceHolder = sfView.getHolder();
+        mSurfaceHolder.addCallback(new SurfaceHolder.Callback() {
+            @Override
+            public void surfaceCreated(SurfaceHolder holder) {
+                //Surface创建时激发，一般在这里调用画面的线程
+                initialMediaCodec(holder);
+            }
+
+            @Override
+            public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+                //Surface的大小发生改变时调用。
+            }
+
+            @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
+            @Override
+            public void surfaceDestroyed(SurfaceHolder holder) {
+                //销毁时激发，一般在这里将画面的线程停止、释放。
+                releaseMediaCodec();
+            }
+        });
     }
 
 
@@ -135,26 +155,6 @@ public class MainActivity extends BaseActivity implements OnAcceptTcpStateChange
         rlCode.setVisibility(View.VISIBLE);
         ivCode.setImageBitmap(bitmap);
         //监听surface的生命周期
-        mSurfaceHolder.addCallback(new SurfaceHolder.Callback() {
-            @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
-            @Override
-            public void surfaceCreated(SurfaceHolder holder) {
-                //Surface创建时激发，一般在这里调用画面的线程
-                initialMediaCodec(holder);
-            }
-
-            @Override
-            public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-                //Surface的大小发生改变时调用。
-            }
-
-            @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
-            @Override
-            public void surfaceDestroyed(SurfaceHolder holder) {
-                //销毁时激发，一般在这里将画面的线程停止、释放。
-                if (videoMediaCodec != null) videoMediaCodec.release();
-            }
-        });
     }
 
     // TODO: 2018/6/12 wt用于本地测试
@@ -174,7 +174,6 @@ public class MainActivity extends BaseActivity implements OnAcceptTcpStateChange
 
     private void startServer() {
         //开启服务
-        mPlayqueue = new NormalPlayQueue();
         mTcpServer = new TcpServer();
         //发送初始化成功指令
         mTcpServer.setBackpassBody(ScreenImageApi.SERVER.MAIN_CMD,
@@ -184,14 +183,22 @@ public class MainActivity extends BaseActivity implements OnAcceptTcpStateChange
         mTcpServer.startServer();
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
+
     private void initialMediaCodec(SurfaceHolder holder) {
         //初始化解码器
+        Log.e(TAG, "initial play queue");
         videoMediaCodec = new VIdeoMediaCodec(holder);
         //开启解码线程
         mDecodeThread = new DecodeThread(videoMediaCodec.getCodec(), mPlayqueue);
         videoMediaCodec.start();
         mDecodeThread.start();
+    }
+
+    public void releaseMediaCodec() {
+        mPlayqueue.stop();
+//        videoMediaCodec.release();
+        mDecodeThread.shutdown();
+
     }
 
     //Tcp连接状态的回调...
@@ -212,7 +219,6 @@ public class MainActivity extends BaseActivity implements OnAcceptTcpStateChange
         //客户端的连接断开...
         Log.e(TAG, "客户端的连接断开..." + e.toString());
 //        if (videoMediaCodec != null) videoMediaCodec.release();
-
         mTcpServer.setacceptTcpDisConnect(acceptMsgThread);
         if (updateUI) {
             //更新页面

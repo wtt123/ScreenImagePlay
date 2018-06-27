@@ -30,7 +30,7 @@ public class AcceptMsgThread extends Thread implements AnalyticDataUtils.OnAnaly
     private DecodeUtils mDecoderUtils;
     private AnalyticDataUtils mAnalyticDataUtils;
     //当前投屏线程
-    private String TAG = "wtt";
+    private String TAG = "AcceptMsgThread";
 
     public AcceptMsgThread(InputStream is, OutputStream outputStream, EncodeV1 encodeV1, OnAcceptBuffListener
             listener, OnAcceptTcpStateChangeListener disconnectListenerlistener) {
@@ -49,6 +49,7 @@ public class AcceptMsgThread extends Thread implements AnalyticDataUtils.OnAnaly
                 spsPpsFrame.setType(Frame.SPSPPS);
                 spsPpsFrame.setSps(sps);
                 spsPpsFrame.setPps(pps);
+                Log.e("AcceptH264MsgThread", "sps pps ...");
                 AcceptMsgThread.this.listener.acceptBuff(spsPpsFrame);
             }
 
@@ -137,7 +138,7 @@ public class AcceptMsgThread extends Thread implements AnalyticDataUtils.OnAnaly
             }
         } catch (Exception e) {
             if (mStateChangeListener != null) {
-                Log.e(TAG, "readMessage: 断开1");
+                Log.e(TAG, "readMessage: = " + e.toString());
                 mStateChangeListener.acceptTcpDisConnect(e, this,true);
             }
         } finally {

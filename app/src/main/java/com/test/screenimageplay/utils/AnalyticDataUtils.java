@@ -83,7 +83,7 @@ public class AnalyticDataUtils {
                 baos.write(buff, 0, eachLen);
             } else {
                 baos.close();
-                throw new IOException("wtt" + "   :tcp have diaconnect...");
+                throw new IOException("AnalyticDataUtils" + "   :tcp have diaconnect...");
             }
             if (len < readSize) {
                 buff = new byte[readSize - len];

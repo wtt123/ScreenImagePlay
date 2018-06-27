@@ -49,6 +49,7 @@ public class DecodeThread extends Thread {
                 case Frame.NORMAL_FRAME:
                     try {
                         videoPlay.decodeH264(frame.getBytes());
+                        Log.i(TAG, "receive normal frame");
                     } catch (Exception e) {
                         Log.e(TAG, "frame Exception" + e.toString());
                     }
@@ -58,6 +59,7 @@ public class DecodeThread extends Thread {
                         ByteBuffer bb = ByteBuffer.allocate(frame.getPps().length + frame.getSps().length);
                         bb.put(frame.getSps());
                         bb.put(frame.getPps());
+                        Log.e(TAG, "receive Sps pps");
                         videoPlay.decodeH264(bb.array());
                     } catch (Exception e) {
                         Log.e(TAG, "sps pps Exception" + e.toString());
@@ -77,6 +79,7 @@ public class DecodeThread extends Thread {
 
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     public void shutdown() {
+        Log.e(TAG, "DecodeThread shutdown");
         isPlaying = false;
         this.interrupt();
         if (audioPlay != null) audioPlay.release();
