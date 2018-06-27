@@ -60,7 +60,7 @@ public class TcpServer {
                         acceptMsgThread.start();
                         //把线程添加到集合中去
                         acceptMsgThreadList.add(acceptMsgThread);
-                        Log.e("123", "run: " + acceptMsgThreadList.size());
+                        Log.e("wt", "run: " + acceptMsgThreadList.size());
                         if (acceptMsgThreadList.size() != 0) {
                             //默认先发送成功标识给第一个客户端
                             if (!isConnect) {
@@ -123,7 +123,7 @@ public class TcpServer {
     // TODO: 2018/6/15 wt 连接中逻辑
     public void setacceptTcpConnect(AcceptMsgThread acceptMsgThread) {
         //投屏正在连接
-        Log.e("123", "acceptTcpConnect: zzz");
+        Log.e("wt", "acceptTcpConnect: zzz");
 //        isConnect = true;
     }
 
@@ -131,7 +131,7 @@ public class TcpServer {
     public void setacceptTcpDisConnect(AcceptMsgThread acceptMsgThread) {
         //连接断开
         boolean remove = acceptMsgThreadList.remove(acceptMsgThread);
-        Log.e("wtt", "移除成功" + remove + "acceptTcpDisConnect: 个数" + acceptMsgThreadList.size());
+        Log.e("wt", "移除成功" + remove + "acceptTcpDisConnect: 个数" + acceptMsgThreadList.size());
         if (acceptMsgThreadList == null || acceptMsgThreadList.size() == 0) {
             return;
         }
