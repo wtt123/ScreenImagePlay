@@ -4,11 +4,7 @@ import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.net.Uri;
-import android.net.wifi.WifiInfo;
-import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -21,10 +17,9 @@ import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
-import android.view.Window;
-import android.view.WindowManager;
 import android.widget.ImageView;
-import android.widget.RelativeLayout;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import com.tbruyelle.rxpermissions2.RxPermissions;
 import com.test.screenimageplay.R;
@@ -45,13 +40,9 @@ import com.uuzuche.lib_zxing.activity.CodeUtils;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.Inet4Address;
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.SocketException;
-import java.util.Enumeration;
 
 import butterknife.BindView;
+import butterknife.ButterKnife;
 
 public class MainActivity extends BaseActivity implements OnAcceptTcpStateChangeListener, OnAcceptBuffListener {
 
@@ -59,8 +50,12 @@ public class MainActivity extends BaseActivity implements OnAcceptTcpStateChange
     ImageView ivCode;
     @BindView(R.id.sf_view)
     SurfaceView sfView;
-    @BindView(R.id.rl_code)
-    RelativeLayout rlCode;
+    @BindView(R.id.ll_code)
+    LinearLayout llCode;
+    @BindView(R.id.tv_device_name)
+    TextView tvDeviceName;
+    @BindView(R.id.tv_wife_name)
+    TextView tvWifeName;
 
     private SurfaceHolder mSurfaceHolder;
     private FileOutputStream fos;
@@ -68,18 +63,18 @@ public class MainActivity extends BaseActivity implements OnAcceptTcpStateChange
     private DecodeThread mDecodeThread;
     private NormalPlayQueue mPlayqueue;
     private TcpServer mTcpServer;
-    private String TAG = "wtt";
+    private String TAG = "wt";
     private Context mContext;
     private Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case 1:
-                    rlCode.setVisibility(View.GONE);
+                    llCode.setVisibility(View.GONE);
                     sfView.setVisibility(View.VISIBLE);
                     break;
                 case 2:
-                    rlCode.setVisibility(View.VISIBLE);
+                    llCode.setVisibility(View.VISIBLE);
                     sfView.setVisibility(View.GONE);
                     break;
             }
@@ -100,6 +95,7 @@ public class MainActivity extends BaseActivity implements OnAcceptTcpStateChange
         //surface保证他们进行交互，当surface销毁之后，surfaceholder断开surface及其客户端的联系
         mPlayqueue = new NormalPlayQueue();
         mSurfaceHolder = sfView.getHolder();
+        //监听surface的生命周期
         mSurfaceHolder.addCallback(new SurfaceHolder.Callback() {
             @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
             @Override
@@ -157,9 +153,14 @@ public class MainActivity extends BaseActivity implements OnAcceptTcpStateChange
         if (bitmap == null) {
             return;
         }
-        rlCode.setVisibility(View.VISIBLE);
+        llCode.setVisibility(View.VISIBLE);
         ivCode.setImageBitmap(bitmap);
-        //监听surface的生命周期
+        if (!TextUtils.isEmpty(AboutIpUtils.getDeviceModel())){
+            tvDeviceName.setText(AboutIpUtils.getDeviceModel());
+        }
+        if (!TextUtils.isEmpty(AboutIpUtils.getWinfeName(mContext))){
+            tvWifeName.setText("Wife："+AboutIpUtils.getWinfeName(mContext));
+        }
     }
 
     // TODO: 2018/6/12 wt用于本地测试
@@ -226,7 +227,7 @@ public class MainActivity extends BaseActivity implements OnAcceptTcpStateChange
         //客户端的连接断开...
         Log.e(TAG, "客户端的连接断开..." + e.toString());
         mTcpServer.setacceptTcpDisConnect(acceptMsgThread);
-        if (mTcpServer.currentSize()<1){
+        if (mTcpServer.currentSize() < 1) {
             Message msg = new Message();
             msg.what = 2;
             mHandler.sendMessage(msg);
@@ -263,5 +264,4 @@ public class MainActivity extends BaseActivity implements OnAcceptTcpStateChange
         super.onDestroy();
         mHandler.removeCallbacksAndMessages(null);
     }
-
 }

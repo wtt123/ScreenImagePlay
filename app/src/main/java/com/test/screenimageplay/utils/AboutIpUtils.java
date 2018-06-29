@@ -5,6 +5,9 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
+import android.os.Build;
+import android.text.TextUtils;
+import android.util.Log;
 
 import java.net.Inet4Address;
 import java.net.InetAddress;
@@ -62,5 +65,29 @@ public class AboutIpUtils {
                 ((ip >> 8) & 0xFF) + "." +
                 ((ip >> 16) & 0xFF) + "." +
                 (ip >> 24 & 0xFF);
+    }
+
+    // TODO: 2018/6/28 获取设备名称
+    public static String getDeviceModel() {
+        return Build.MODEL;
+    }
+
+    // TODO: 2018/6/28 获取无线网名称
+    public static String getWinfeName(Context context) {
+        WifiManager wifiMgr = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+        int wifiState = wifiMgr.getWifiState();
+        WifiInfo info = wifiMgr.getConnectionInfo();
+        if (info==null|| TextUtils.isEmpty(info.getSSID())){
+            return null;
+        }
+        //获取Android版本号
+        int sdkInt = Build.VERSION.SDK_INT;
+        if (sdkInt >= 17) {
+            if (info.getSSID().startsWith("\"") && info.getSSID().endsWith("\"")) {
+
+                 return info.getSSID().substring(1, info.getSSID().length() - 1);
+            }
+        }
+        return info != null ? info.getSSID() : null;
     }
 }

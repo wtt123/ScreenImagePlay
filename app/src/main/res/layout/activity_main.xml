@@ -10,29 +10,53 @@
         android:id="@+id/sf_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:visibility="gone"/>
+        android:visibility="gone" />
 
-    <RelativeLayout
-        android:id="@+id/rl_code"
+    <LinearLayout
+        android:id="@+id/ll_code"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:background="#4e72b8"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tv_device_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="30px"
+            android:text="魅族"
+            android:textColor="#fff"
+            android:textSize="56px"
+            android:textStyle="bold"/>
+
+        <TextView
+            android:id="@+id/tv_wife_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="46px"
+            android:text="Wife:"
+            android:textColor="#00ae9d" />
 
         <ImageView
             android:id="@+id/iv_code"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_centerInParent="true" />
+            android:layout_marginTop="100px"
+            android:layout_gravity="center" />
+
         <TextView
             android:id="@+id/tv_msg"
-            android:layout_marginBottom="100px"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_above="@id/iv_code"
             android:layout_centerHorizontal="true"
-           android:layout_above="@id/iv_code"
-            android:text="请扫码连接！"
-            android:textColor="#000"
-            android:textSize="56px" />
-    </RelativeLayout>
+            android:layout_marginBottom="100px"
+            android:layout_marginTop="40px"
+            android:text="扫一扫连接设备"
+            android:textColor="#fff"
+            android:textSize="46px" />
+    </LinearLayout>
 
 
 </RelativeLayout>

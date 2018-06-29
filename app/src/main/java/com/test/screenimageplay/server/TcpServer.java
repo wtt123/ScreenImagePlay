@@ -34,6 +34,7 @@ public class TcpServer {
     private boolean isConnect = false;
     //是否需要去更新界面
     private boolean isUpdateUI = false;
+    private AcceptMsgThread acceptMsgThread1;
 
     public TcpServer() {
         this.acceptMsgThreadList = new ArrayList<>();
@@ -61,12 +62,14 @@ public class TcpServer {
                         //把线程添加到集合中去
                         acceptMsgThreadList.add(acceptMsgThread);
                         Log.e("wt", "run: " + acceptMsgThreadList.size());
-                         if (acceptMsgThreadList.size() > 1) {
+                        if (acceptMsgThreadList.size() > 1) {
                             isConnect = true;
                             continue;
                         }
                         //默认先发送成功标识给第一个客户端
                         acceptMsgThreadList.get(0).sendStartMessage();
+                        //把第一个投屏的设备对象记录下来
+                        acceptMsgThread1 = acceptMsgThreadList.get(0);
                     }
                 } catch (Exception e) {
                     Log.e("TcpServer", "" + e.toString());
@@ -133,10 +136,10 @@ public class TcpServer {
             return;
         }
         //如果停止的不是正在投屏的线程，就不再去走下面的方法
-        if (acceptMsgThread != acceptMsgThreadList.get(0)) {
+        if (acceptMsgThread != acceptMsgThreadList.get(0) && acceptMsgThread != acceptMsgThread1) {
+            Log.e("wt", "setacceptTcpDisConnect: zzz");
             return;
         }
-
         //开启第下一个投屏
         acceptMsgThreadList.get(0).sendStartMessage();
     }
