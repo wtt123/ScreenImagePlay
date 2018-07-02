@@ -1,8 +1,6 @@
-package com.test.screenimageplay.server.interf;
+package com.test.screenimageplay.server.tcp.interf;
 
-import com.test.screenimageplay.server.AcceptMsgThread;
-
-import java.util.List;
+import com.test.screenimageplay.server.tcp.AcceptMsgThread;
 
 /**
  * Created by wt

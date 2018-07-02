@@ -1,10 +1,12 @@
-package com.test.screenimageplay.server;
+package com.test.screenimageplay.server.tcp;
 
 import android.util.Log;
 
 
-import com.test.screenimageplay.server.interf.OnAcceptBuffListener;
-import com.test.screenimageplay.server.interf.OnAcceptTcpStateChangeListener;
+import com.test.screenimageplay.server.tcp.AcceptMsgThread;
+import com.test.screenimageplay.server.tcp.EncodeV1;
+import com.test.screenimageplay.server.tcp.interf.OnAcceptBuffListener;
+import com.test.screenimageplay.server.tcp.interf.OnAcceptTcpStateChangeListener;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;

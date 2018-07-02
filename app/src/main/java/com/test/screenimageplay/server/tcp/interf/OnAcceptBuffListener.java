@@ -1,4 +1,4 @@
-package com.test.screenimageplay.server.interf;
+package com.test.screenimageplay.server.tcp.interf;
 
 
 import com.test.screenimageplay.entity.Frame;

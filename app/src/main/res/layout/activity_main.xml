@@ -25,7 +25,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="30px"
-            android:text="魅族"
+            android:text="null"
             android:textColor="#fff"
             android:textSize="56px"
             android:textStyle="bold"/>
@@ -35,7 +35,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="46px"
-            android:text="Wife:"
+            android:text="Wife:null"
             android:textColor="#00ae9d" />
 
         <ImageView

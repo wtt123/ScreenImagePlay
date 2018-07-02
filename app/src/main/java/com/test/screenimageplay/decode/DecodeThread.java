@@ -10,7 +10,7 @@ import android.util.Log;
 import com.test.screenimageplay.decode.play.AudioPlay;
 import com.test.screenimageplay.decode.play.VideoPlay;
 import com.test.screenimageplay.entity.Frame;
-import com.test.screenimageplay.server.NormalPlayQueue;
+import com.test.screenimageplay.server.tcp.NormalPlayQueue;
 
 import java.nio.ByteBuffer;
 

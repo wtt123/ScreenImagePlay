@@ -1,4 +1,4 @@
-package com.test.screenimageplay.server;
+package com.test.screenimageplay.server.tcp;
 
 import android.util.Log;
 

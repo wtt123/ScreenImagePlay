@@ -1,4 +1,4 @@
-package com.test.screenimageplay.server;
+package com.test.screenimageplay.server.tcp;
 
 import android.os.SystemClock;
 import android.util.Log;
@@ -7,8 +7,8 @@ import com.test.screenimageplay.constant.ScreenImageApi;
 import com.test.screenimageplay.entity.Frame;
 import com.test.screenimageplay.entity.ReceiveData;
 import com.test.screenimageplay.entity.ReceiveHeader;
-import com.test.screenimageplay.server.interf.OnAcceptBuffListener;
-import com.test.screenimageplay.server.interf.OnAcceptTcpStateChangeListener;
+import com.test.screenimageplay.server.tcp.interf.OnAcceptBuffListener;
+import com.test.screenimageplay.server.tcp.interf.OnAcceptTcpStateChangeListener;
 import com.test.screenimageplay.utils.AnalyticDataUtils;
 import com.test.screenimageplay.utils.DecodeUtils;
 

@@ -3,10 +3,11 @@ package com.test.screenimageplay.ui;
 import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Bitmap;
+import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.Build;
-import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
@@ -28,21 +29,26 @@ import com.test.screenimageplay.core.BaseActivity;
 import com.test.screenimageplay.decode.DecodeThread;
 import com.test.screenimageplay.entity.Frame;
 import com.test.screenimageplay.mediacodec.VIdeoMediaCodec;
-import com.test.screenimageplay.server.AcceptMsgThread;
-import com.test.screenimageplay.server.NormalPlayQueue;
-import com.test.screenimageplay.server.TcpServer;
-import com.test.screenimageplay.server.interf.OnAcceptBuffListener;
-import com.test.screenimageplay.server.interf.OnAcceptTcpStateChangeListener;
+import com.test.screenimageplay.server.tcp.AcceptMsgThread;
+import com.test.screenimageplay.server.NetWorkStateReceiver;
+import com.test.screenimageplay.server.tcp.NormalPlayQueue;
+import com.test.screenimageplay.server.tcp.TcpServer;
+import com.test.screenimageplay.server.tcp.interf.OnAcceptBuffListener;
+import com.test.screenimageplay.server.tcp.interf.OnAcceptTcpStateChangeListener;
 import com.test.screenimageplay.utils.AboutIpUtils;
+import com.test.screenimageplay.utils.NetWorkUtils;
 import com.test.screenimageplay.utils.ToastUtils;
 import com.uuzuche.lib_zxing.activity.CodeUtils;
+
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
 import butterknife.BindView;
-import butterknife.ButterKnife;
 
 public class MainActivity extends BaseActivity implements OnAcceptTcpStateChangeListener, OnAcceptBuffListener {
 
@@ -65,6 +71,7 @@ public class MainActivity extends BaseActivity implements OnAcceptTcpStateChange
     private TcpServer mTcpServer;
     private String TAG = "wt";
     private Context mContext;
+    private NetWorkStateReceiver netWorkStateReceiver;
     private Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -80,6 +87,7 @@ public class MainActivity extends BaseActivity implements OnAcceptTcpStateChange
             }
         }
     };
+    private String currentIP;
 
 
     @Override
@@ -140,28 +148,19 @@ public class MainActivity extends BaseActivity implements OnAcceptTcpStateChange
                         ToastUtils.showShort(mContext, "拒绝权限，不再弹出询问框，请前往APP应用设置中打开此权限");
                     }
                 });
-        //获取本机ip
-        if (TextUtils.isEmpty(AboutIpUtils.getIPAddress(mContext))) {
-            Log.e(TAG, "initData: xxx");
+        if (!NetWorkUtils.isWifiActive(mContext)) {
+            ToastUtils.showShort(mContext, "请先连接无线网！！");
+            return;
+        }
+        if (TextUtils.isEmpty(NetWorkUtils.getIp(mContext))) {
             ToastUtils.showShort(mContext, "请先设置网络");
             return;
         }
-        Log.e(TAG, "initData: xxx" + AboutIpUtils.getIPAddress(mContext));
-        //以ip生成二维码
-        Bitmap bitmap = CodeUtils.createImage(AboutIpUtils.getIPAddress(mContext), 500, 500,
-                null);
-        if (bitmap == null) {
-            return;
-        }
-        llCode.setVisibility(View.VISIBLE);
-        ivCode.setImageBitmap(bitmap);
-        if (!TextUtils.isEmpty(AboutIpUtils.getDeviceModel())){
-            tvDeviceName.setText(AboutIpUtils.getDeviceModel());
-        }
-        if (!TextUtils.isEmpty(AboutIpUtils.getWinfeName(mContext))){
-            tvWifeName.setText("Wife："+AboutIpUtils.getWinfeName(mContext));
-        }
+        currentIP = NetWorkUtils.getIp(mContext);
+        updateUI(currentIP);
     }
+
+  
 
     // TODO: 2018/6/12 wt用于本地测试
     private void initialFIle() {
@@ -199,6 +198,25 @@ public class MainActivity extends BaseActivity implements OnAcceptTcpStateChange
         mDecodeThread = new DecodeThread(videoMediaCodec.getCodec(), mPlayqueue);
         videoMediaCodec.start();
         mDecodeThread.start();
+    }
+
+    private void updateUI(String currentIP) {
+        Log.e(TAG, "initData: xxx" +currentIP);
+        //以ip生成二维码
+        Bitmap bitmap = CodeUtils.createImage(currentIP, 500, 500,
+                null);
+        llCode.setVisibility(View.VISIBLE);
+        ivCode.setImageBitmap(bitmap);
+        if (!TextUtils.isEmpty(AboutIpUtils.getDeviceModel())) {
+            tvDeviceName.setText(AboutIpUtils.getDeviceModel());
+        }else {
+            tvDeviceName.setText("null");
+        }
+        if (!TextUtils.isEmpty(AboutIpUtils.getWinfeName(mContext))) {
+            tvWifeName.setText("Wife：" + AboutIpUtils.getWinfeName(mContext));
+        }else {
+            tvWifeName.setText("Wife：null");
+        }
     }
 
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
@@ -249,19 +267,48 @@ public class MainActivity extends BaseActivity implements OnAcceptTcpStateChange
     }
 
 
+    @Override
+    protected void onResume() {
+        if (netWorkStateReceiver == null) {
+            netWorkStateReceiver = new NetWorkStateReceiver();
+        }
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+        registerReceiver(netWorkStateReceiver, filter);
+        super.onResume();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        EventBus.getDefault().register(this);
+    }
+
+    // TODO: 2018/7/2 ip切换时更新当前ui
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onMessageEvent(String state) {
+      if (!state.equals(currentIP)){
+          Log.e(TAG, "onMessageEvent: zzz" );
+          updateUI(state);
+      }
+    };
+
+    @Override
+    protected void onDestroy() {
+        unregisterReceiver(netWorkStateReceiver);
+        mHandler.removeCallbacksAndMessages(null);
+        EventBus.getDefault().unregister(this);
+        super.onDestroy();
+
+    }
+
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     @Override
     public void finish() {
-        super.finish();
         if (mPlayqueue != null) mPlayqueue.stop();
         if (videoMediaCodec != null) videoMediaCodec.release();
         if (mDecodeThread != null) mDecodeThread.shutdown();
         if (mTcpServer != null) mTcpServer.stopServer();
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        mHandler.removeCallbacksAndMessages(null);
+        super.finish();
     }
 }
