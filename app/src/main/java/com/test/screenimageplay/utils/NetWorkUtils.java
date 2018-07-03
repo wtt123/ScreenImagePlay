@@ -9,6 +9,7 @@ import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.text.TextUtils;
 import android.util.Log;
+
 import com.test.screenimageplay.constant.Constants;
 
 import java.lang.reflect.Method;
@@ -122,7 +123,7 @@ public class NetWorkUtils {
         }
     }
 
-    public enum WIFI_AP_STATE {
+    enum WIFI_AP_STATE {
         WIFI_AP_STATE_DISABLING, WIFI_AP_STATE_DISABLED, WIFI_AP_STATE_ENABLING, WIFI_AP_STATE_ENABLED, WIFI_AP_STATE_FAILED
     }
 
@@ -141,7 +142,7 @@ public class NetWorkUtils {
             WifiManager wifiManager = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
             ip = intIP2StringIP(wifiManager.getConnectionInfo().getIpAddress());
         } else {
-            ToastUtils.showShort(context,"当前网络不可用,请检查网络设置!");
+            ToastUtils.showShort(context, "当前网络不可用,请检查网络设置!");
         }
         return ip;
     }
@@ -197,10 +198,10 @@ public class NetWorkUtils {
     public static boolean isInChildNet(String pcIp, Context context) {
         WifiManager wm = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         String phoneIp = intIP2StringIP(wm.getConnectionInfo().getIpAddress());
-        Log.e("111", "isInChildNet: "+phoneIp );
+        Log.e("111", "isInChildNet: " + phoneIp);
         long netmask = wm.getDhcpInfo().netmask;
         if (netmask == 0) { //在某些手机下,如 魅族 ,子网掩码会是0,这种情况下就不执行校验逻辑了
-            Log.e("111", "isInChildNet: zzz" );
+            Log.e("111", "isInChildNet: zzz");
             return true;
         }
         boolean b = checkSameSegment(phoneIp, pcIp, netmask);
@@ -220,7 +221,7 @@ public class NetWorkUtils {
         int ipValue2 = getIpV4Value(pcIp);
         int result = ~(ipValue1 ^ ipValue2);
         int i = intRevBtey((int) mask);
-        Constants.IP=phoneIp;
+        Constants.IP = phoneIp;
         return result >= i;
     }
 
@@ -255,6 +256,7 @@ public class NetWorkUtils {
         }
         return new byte[4];
     }
+
     // TODO: 2018/6/28 获取设备名称
     public static String getDeviceModel() {
         return Build.MODEL;
@@ -265,7 +267,7 @@ public class NetWorkUtils {
         WifiManager wifiMgr = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
         int wifiState = wifiMgr.getWifiState();
         WifiInfo info = wifiMgr.getConnectionInfo();
-        if (info==null|| TextUtils.isEmpty(info.getSSID())){
+        if (info == null || TextUtils.isEmpty(info.getSSID())) {
             return null;
         }
         //获取Android版本号
