@@ -161,4 +161,8 @@ public class VideoPlay {
             mVideoMediaCodec = null;
         }
     }
+
+    public interface OnFrameChangeListener {
+        void onFrameSize(int width, int height);
+    }
 }
