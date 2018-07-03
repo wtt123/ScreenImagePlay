@@ -98,6 +98,7 @@ public class MainActivity extends BaseActivity implements OnAcceptTcpStateChange
     @Override
     protected void initView() {
         mContext = this;
+        EventBus.getDefault().register(this);
         initialFIle();
         startServer();
         //surface保证他们进行交互，当surface销毁之后，surfaceholder断开surface及其客户端的联系
@@ -243,8 +244,8 @@ public class MainActivity extends BaseActivity implements OnAcceptTcpStateChange
     @Override
     public void acceptTcpDisConnect(Exception e, AcceptMsgThread acceptMsgThread) {
         //客户端的连接断开...
-        Log.e(TAG, "客户端的连接断开..." + e.toString());
-        mTcpServer.setacceptTcpDisConnect(acceptMsgThread);
+//        Log.e(TAG, "客户端的连接断开..." + e.toString());
+        mTcpServer.setacceptTcpDisConnect(mContext,acceptMsgThread);
         if (mTcpServer.currentSize() < 1) {
             Message msg = new Message();
             msg.what = 2;
@@ -278,17 +279,12 @@ public class MainActivity extends BaseActivity implements OnAcceptTcpStateChange
         super.onResume();
     }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-        EventBus.getDefault().register(this);
-    }
 
     // TODO: 2018/7/2 ip切换时更新当前ui
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(String state) {
+        Log.e("wtt", "onMessageEvent: "+state );
       if (!state.equals(currentIP)){
-          Log.e(TAG, "onMessageEvent: zzz" );
           updateUI(state);
       }
     };

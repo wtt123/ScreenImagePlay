@@ -18,8 +18,8 @@ import java.nio.ByteBuffer;
 
 public class VIdeoMediaCodec {
     private MediaCodec mCodec;
-    private static final int VIDEO_WIDTH = 1920;
-    private static final int VIDEO_HEIGHT = 1080;
+    private static final int VIDEO_WIDTH = 360;
+    private static final int VIDEO_HEIGHT = 640;
     private int FrameRate = 30;
     private boolean useSpsPPs = false;
     private SurfaceHolder mHolder;

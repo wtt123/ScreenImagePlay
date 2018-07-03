@@ -1,5 +1,6 @@
 package com.test.screenimageplay.server.tcp;
 
+import android.content.Context;
 import android.util.Log;
 
 
@@ -7,6 +8,7 @@ import com.test.screenimageplay.server.tcp.AcceptMsgThread;
 import com.test.screenimageplay.server.tcp.EncodeV1;
 import com.test.screenimageplay.server.tcp.interf.OnAcceptBuffListener;
 import com.test.screenimageplay.server.tcp.interf.OnAcceptTcpStateChangeListener;
+import com.test.screenimageplay.utils.ToastUtils;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -130,7 +132,7 @@ public class TcpServer {
     }
 
     // TODO: 2018/6/15 wt连接断开逻辑
-    public void setacceptTcpDisConnect(AcceptMsgThread acceptMsgThread) {
+    public void setacceptTcpDisConnect(Context context,AcceptMsgThread acceptMsgThread) {
         //连接断开
         boolean remove = acceptMsgThreadList.remove(acceptMsgThread);
         Log.e("wtt", "移除成功" + remove + "acceptTcpDisConnect: 个数" + acceptMsgThreadList.size());
@@ -144,6 +146,8 @@ public class TcpServer {
         }
         //开启第下一个投屏
         acceptMsgThreadList.get(0).sendStartMessage();
+
+//        ToastUtils.showShort(context,"已切换下个设备！");
     }
 
 
