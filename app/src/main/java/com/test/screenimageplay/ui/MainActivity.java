@@ -244,7 +244,7 @@ public class MainActivity extends BaseActivity implements OnAcceptTcpStateChange
     @Override
     public void acceptTcpDisConnect(Exception e, AcceptMsgThread acceptMsgThread) {
         //客户端的连接断开...
-//        Log.e(TAG, "客户端的连接断开..." + e.toString());
+        Log.e(TAG, "客户端的连接断开..." + e.toString());
         mTcpServer.setacceptTcpDisConnect(mContext,acceptMsgThread);
         if (mTcpServer.currentSize() < 1) {
             Message msg = new Message();
