@@ -38,9 +38,9 @@ public class VideoPlayController implements OnAcceptBuffListener {
         //开启解码线程
         mDecodeThread = new DecodeThread(videoMediaCodec.getCodec(), mPlayqueue);
         videoMediaCodec.start();
-        mDecodeThread.setOnFrameChangeListener(new VideoPlay.OnFrameChangeListener() {
-            @Override
-            public void onFrameSize(int width, int height) {
+//        mDecodeThread.setOnFrameChangeListener(new VideoPlay.OnFrameChangeListener() {
+//            @Override
+//            public void onFrameSize(int width, int height) {
 //                Log.e(TAG, "onFrameSize width = " + width + "height = " + height);
 //                Log.e(TAG, "surface view width = " + sfView.getWidth() + " height = " + sfView.getHeight());
 //                RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) sfView.getLayoutParams();
@@ -48,8 +48,8 @@ public class VideoPlayController implements OnAcceptBuffListener {
 //                layoutParams.height = height;
 ////                layoutParams.addRule(RelativeLayout.CENTER_IN_PARENT);
 //                sfView.setLayoutParams(layoutParams);
-            }
-        });
+//            }
+//        });
         mDecodeThread.start();
     }
 

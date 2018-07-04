@@ -1,20 +1,15 @@
 package com.wt.screenimage_lib.server.tcp;
 
-import android.content.Context;
 import android.util.Log;
 
 
 import com.wt.screenimage_lib.ScreenImageApi;
 import com.wt.screenimage_lib.ScreenImageController;
-import com.wt.screenimage_lib.control.VideoPlayController;
 import com.wt.screenimage_lib.entity.ReceiveData;
 import com.wt.screenimage_lib.entity.ReceiveHeader;
-import com.wt.screenimage_lib.entity.TcpEvent;
 import com.wt.screenimage_lib.server.tcp.interf.OnAcceptBuffListener;
-import com.wt.screenimage_lib.server.tcp.interf.OnAcceptTcpStateChangeListener;
+import com.wt.screenimage_lib.server.tcp.interf.OnServerStateChangeListener;
 import com.wt.screenimage_lib.utils.AnalyticDataUtils;
-
-import org.greenrobot.eventbus.EventBus;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -38,7 +33,6 @@ public class TcpServer implements AcceptMsgThread.OnTcpChangeListener {
     private boolean isAccept = true;
     private EncodeV1 mEncodeV1;
     private OnAcceptBuffListener mListener;
-    private AcceptMsgThread acceptMsgThread;
     //把线程给添加进来
     private List<AcceptMsgThread> acceptMsgThreadList;
     private AcceptMsgThread acceptMsgThread1;
@@ -48,12 +42,6 @@ public class TcpServer implements AcceptMsgThread.OnTcpChangeListener {
         this.acceptMsgThreadList = new ArrayList<>();
         mAnalyticUtils = new AnalyticDataUtils();
         init();
-        mAnalyticUtils.setOnAnalyticDataListener(new AnalyticDataUtils.OnAnalyticDataListener() {
-            @Override
-            public void onSuccess(ReceiveData data) {
-                acceptLogicMsg(data);
-            }
-        });
     }
 
     private void init() {
@@ -78,10 +66,32 @@ public class TcpServer implements AcceptMsgThread.OnTcpChangeListener {
                         InputStream inputStream = socket.getInputStream();
                         byte[] temp = mAnalyticUtils.readByte(inputStream, 18);
                         ReceiveHeader receiveHeader = mAnalyticUtils.analysisHeader(temp);
-                        if (receiveHeader.getMainCmd() == ScreenImageApi.LOGIC_REQUEST.MAIN_CMD) {
-                            mAnalyticUtils.analyticData(inputStream, receiveHeader);
-                        } else if (receiveHeader.getMainCmd() == ScreenImageApi.RECORD.MAIN_CMD) {
-                            startAcceptMsg(socket);
+                        if (receiveHeader.getMainCmd() == ScreenImageApi.LOGIC_REQUEST.MAIN_CMD) {  //业务逻辑请求
+                            //接收逻辑消息线程
+                            LogicThread logicThread = new LogicThread(socket, receiveHeader);
+                            logicThread.setOnAcceptLogicMsgListener(new LogicThread.OnAcceptLogicMsgListener() {
+                                @Override
+                                public EncodeV1 onAcceptLogicMsg(ReceiveData data) {
+                                    return acceptLogicMsg(data);
+                                }
+                            });
+                            logicThread.start();
+                        } else if (receiveHeader.getMainCmd() == ScreenImageApi.RECORD.MAIN_CMD) {  //投屏请求
+                            //开启接收H264和Aac线程
+                            AcceptMsgThread acceptMsgThread = new AcceptMsgThread(socket, mEncodeV1, mListener, TcpServer.this);
+                            acceptMsgThread.start();
+                            //把线程添加到集合中去
+                            acceptMsgThreadList.add(acceptMsgThread);
+                            showLog("run: " + acceptMsgThreadList.size());
+                            if (acceptMsgThreadList.size() > 1) {
+                                return;
+                            }
+                            //默认先发送成功标识给第一个客户端
+                            acceptMsgThreadList.get(0).sendStartMessage();
+                            //把第一个投屏的设备对象记录下来
+                            acceptMsgThread1 = acceptMsgThreadList.get(0);
+                        } else {
+                            socket.close();
                         }
                     }
                 } catch (Exception e) {
@@ -89,23 +99,6 @@ public class TcpServer implements AcceptMsgThread.OnTcpChangeListener {
                 }
             }
         }.start();
-    }
-
-    private void startAcceptMsg(Socket socket) throws IOException {
-        //开启接收消息线程
-        acceptMsgThread = new AcceptMsgThread(socket.getInputStream(),
-                socket.getOutputStream(), mEncodeV1, mListener, this);
-        acceptMsgThread.start();
-        //把线程添加到集合中去
-        acceptMsgThreadList.add(acceptMsgThread);
-        showLog("run: " + acceptMsgThreadList.size());
-        if (acceptMsgThreadList.size() > 1) {
-            return;
-        }
-        //默认先发送成功标识给第一个客户端
-        acceptMsgThreadList.get(0).sendStartMessage();
-        //把第一个投屏的设备对象记录下来
-        acceptMsgThread1 = acceptMsgThreadList.get(0);
     }
 
     public void setOnAccepttBuffListener(OnAcceptBuffListener listener) {
@@ -120,8 +113,9 @@ public class TcpServer implements AcceptMsgThread.OnTcpChangeListener {
             public void run() {
                 super.run();
                 try {
-                    if (acceptMsgThread != null) {
-                        acceptMsgThread.shutdown();
+                    for (AcceptMsgThread thread : acceptMsgThreadList) {
+                        if (thread == null) continue;
+                        thread.shutdown();
                     }
                     if (serverSocket != null) {
                         serverSocket.close();
@@ -134,11 +128,35 @@ public class TcpServer implements AcceptMsgThread.OnTcpChangeListener {
     }
 
 
-    public void acceptLogicMsg(ReceiveData data) {
-        ArrayList<OnAcceptTcpStateChangeListener> mList = ScreenImageController.getInstance().mList;
+    public EncodeV1 acceptLogicMsg(ReceiveData data) {
+        ArrayList<OnServerStateChangeListener> mList = ScreenImageController.getInstance().mList;
+        if (mList == null) {
+            return null;
+        }
+        for (OnServerStateChangeListener listener : mList) {
+            EncodeV1 encodeV1 = listener.acceptLogicTcpMsg(data);
+            if (encodeV1 == null) continue;
+            return encodeV1;
+        }
+        return null;
+    }
+
+    public void connectListener() {
+        ArrayList<OnServerStateChangeListener> mList = ScreenImageController.getInstance().mList;
         if (mList == null) return;
-        for (OnAcceptTcpStateChangeListener listener : mList) {
-            listener.acceptLogicMsg(data);
+        for (OnServerStateChangeListener listener : mList) {
+            listener.acceptH264TcpConnect(currentSize());
+        }
+    }
+
+    /**
+     * 所有listener执行uankai断开回调
+     */
+    public void disconnectListener(Exception e) {
+        ArrayList<OnServerStateChangeListener> mList = ScreenImageController.getInstance().mList;
+        if (mList == null) return;
+        for (OnServerStateChangeListener listener : mList) {
+            listener.acceptH264TcpDisConnect(e, currentSize());
         }
     }
 
@@ -157,19 +175,14 @@ public class TcpServer implements AcceptMsgThread.OnTcpChangeListener {
 
     @Override
     public void disconnect(Exception e, AcceptMsgThread thread) {
-        boolean remove = acceptMsgThreadList.remove(acceptMsgThread);
-        TcpEvent tcpEvent = new TcpEvent();
-        tcpEvent.setTcpMsg(TcpEvent.TCP_DISCONNECT);
-        tcpEvent.setE(e);
-        tcpEvent.setSize(currentSize());
-        EventBus.getDefault().post(tcpEvent);
-
+        boolean remove = acceptMsgThreadList.remove(thread);
+        disconnectListener(e);
         Log.e("wtt", "移除成功" + remove + "acceptTcpDisConnect: 个数" + acceptMsgThreadList.size());
         if (acceptMsgThreadList == null || acceptMsgThreadList.size() == 0) {
             return;
         }
         //如果停止的不是正在投屏的线程，就不再去走下面的方法
-        if (acceptMsgThread != acceptMsgThreadList.get(0) && acceptMsgThread != acceptMsgThread1) {
+        if (thread != acceptMsgThreadList.get(0) && thread != acceptMsgThread1) {
             Log.e("wt", "setacceptTcpDisConnect: zzz");
             return;
         }
@@ -184,9 +197,6 @@ public class TcpServer implements AcceptMsgThread.OnTcpChangeListener {
      */
     @Override
     public void connect(AcceptMsgThread thread) {
-        TcpEvent tcpEvent = new TcpEvent();
-        tcpEvent.setTcpMsg(TcpEvent.TCP_CONNECT);
-        tcpEvent.setSize(currentSize());
-        EventBus.getDefault().post(tcpEvent);
+        connectListener();
     }
 }

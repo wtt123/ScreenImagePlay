@@ -2,6 +2,7 @@ package com.wt.screenimage_lib.server.tcp.interf;
 
 import com.wt.screenimage_lib.entity.ReceiveData;
 import com.wt.screenimage_lib.server.tcp.AcceptMsgThread;
+import com.wt.screenimage_lib.server.tcp.EncodeV1;
 
 import java.io.OutputStream;
 
@@ -10,19 +11,20 @@ import java.io.OutputStream;
  * 监听连接回调
  */
 
-public abstract class OnAcceptTcpStateChangeListener {
+public abstract class OnServerStateChangeListener {
     //接收到客户端的Tcp连接
-    public abstract void acceptTcpConnect(AcceptMsgThread acceptMsgThread);
+    public abstract void acceptH264TcpConnect(int currentSize);
 
     /**
      * by wt
      * 接收到客户端的Tcp断开连接
      *
      * @param e               异常提示
-     * @param acceptMsgThread 当前投屏线程
+     * @param currentSize 当前投屏线程
      */
-    public abstract void acceptTcpDisConnect(Exception e, AcceptMsgThread acceptMsgThread);
+    public abstract void acceptH264TcpDisConnect(Exception e, int currentSize);
 
     //接到逻辑消息
-    public abstract void acceptLogicMsg(ReceiveData data);
+    public abstract EncodeV1 acceptLogicTcpMsg(ReceiveData data);
+
 }

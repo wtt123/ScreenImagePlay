@@ -6,7 +6,7 @@ import android.os.Handler;
 
 import com.wt.screenimage_lib.server.tcp.TcpServer;
 import com.wt.screenimage_lib.server.tcp.interf.OnAcceptBuffListener;
-import com.wt.screenimage_lib.server.tcp.interf.OnAcceptTcpStateChangeListener;
+import com.wt.screenimage_lib.server.tcp.interf.OnServerStateChangeListener;
 
 import java.util.ArrayList;
 
@@ -23,7 +23,7 @@ public class ScreenImageController {
     protected Context mContext;
     protected TcpServer tcpServer;
     private static ScreenImageController mController;
-    public ArrayList<OnAcceptTcpStateChangeListener> mList = new ArrayList<>();
+    public ArrayList<OnServerStateChangeListener> mList = new ArrayList<>();
 
     private ScreenImageController() {
     }
@@ -62,14 +62,14 @@ public class ScreenImageController {
         return mController;
     }
 
-    public void setOnAcceptTcpStateChangeListener(OnAcceptTcpStateChangeListener listener) {
+    public void addOnAcceptTcpStateChangeListener(OnServerStateChangeListener listener) {
         if (mList.contains(listener)) {
             return;
         }
         mList.add(listener);
     }
 
-    public void removeOnAcceptTcpStateChangeListener(OnAcceptTcpStateChangeListener listener) {
+    public void removeOnAcceptTcpStateChangeListener(OnServerStateChangeListener listener) {
         mList.remove(listener);
     }
 }

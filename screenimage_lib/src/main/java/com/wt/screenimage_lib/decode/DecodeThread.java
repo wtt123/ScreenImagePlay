@@ -77,7 +77,7 @@ public class DecodeThread extends Thread {
     }
 
     public void setOnFrameChangeListener(VideoPlay.OnFrameChangeListener listener) {
-        videoPlay.setOnFrameChangeListener(listener);
+//        videoPlay.setOnFrameChangeListener(listener);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)

@@ -20,11 +20,13 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.tbruyelle.rxpermissions2.RxPermissions;
 import com.test.screenimageplay.R;
 import com.test.screenimageplay.core.BaseActivity;
+import com.wt.screenimage_lib.ScreenImageApi;
 import com.wt.screenimage_lib.ScreenImageController;
 import com.wt.screenimage_lib.control.VideoPlayController;
 import com.test.screenimageplay.boastcast.NetWorkStateReceiver;
@@ -32,6 +34,9 @@ import com.test.screenimageplay.utils.AboutIpUtils;
 import com.test.screenimageplay.utils.NetWorkUtils;
 import com.test.screenimageplay.utils.ToastUtils;
 import com.uuzuche.lib_zxing.activity.CodeUtils;
+import com.wt.screenimage_lib.entity.ReceiveData;
+import com.wt.screenimage_lib.server.tcp.EncodeV1;
+import com.wt.screenimage_lib.server.tcp.interf.OnServerStateChangeListener;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -79,6 +84,7 @@ public class MainActivity extends BaseActivity {
         }
     };
     private String currentIP;
+    private MyOnServerStateChangeListener mListener;
 
 
     @Override
@@ -123,6 +129,8 @@ public class MainActivity extends BaseActivity {
     private void startServer() {
         ScreenImageController.getInstance()
                 .init(getApplication()).startServer();
+        mListener = new MyOnServerStateChangeListener();
+        ScreenImageController.getInstance().addOnAcceptTcpStateChangeListener(mListener);
     }
 
 
@@ -176,7 +184,6 @@ public class MainActivity extends BaseActivity {
     }
 
 
-
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
 
 
@@ -199,27 +206,56 @@ public class MainActivity extends BaseActivity {
         }
     }
 
+    class MyOnServerStateChangeListener extends OnServerStateChangeListener {
 
-    //Tcp连接状态的回调...
-    @Override
-    public void acceptTcpConnect() {
-        //接收到客户端的连接...
-        Log.e(TAG, "接收到客户端的连接...");
-        Message msg = new Message();
-        msg.what = 1;
-        mHandler.sendMessage(msg);
-    }
-
-    @Override
-    public void acceptTcpDisConnect(int size, Exception e) {
-        //客户端的连接断开...
-        Log.e(TAG, "客户端的连接断开..." + e.toString());
-        if (size < 1) {
+        @Override
+        public void acceptH264TcpConnect(int currentSize) {
+            //接收到客户端的连接...
+            Log.e(TAG, " acceptH264TcpConnect 接收到客户端的连接...");
             Message msg = new Message();
-            msg.what = 2;
+            msg.what = 1;
             mHandler.sendMessage(msg);
         }
+
+        @Override
+        public void acceptH264TcpDisConnect(Exception e, int currentSize) {
+            //客户端的连接断开...
+            Log.e(TAG, " acceptH264TcpDisConnect 客户端的连接断开..." + e.toString());
+            if (currentSize < 1) {
+                Message msg = new Message();
+                msg.what = 2;
+                mHandler.sendMessage(msg);
+            }
+        }
+
+        @Override
+        public EncodeV1 acceptLogicTcpMsg(ReceiveData data) {   //处理收到的消息逻辑,在子线程执行,返回的EnvodeV1的内容会在本次Tcp连接中返回
+            if (data.getHeader().getMainCmd() == ScreenImageApi.LOGIC_REQUEST.MAIN_CMD &&
+                    data.getHeader().getSubCmd() == ScreenImageApi.LOGIC_REQUEST.GET_START_INFO) {
+                //收到初始化信息
+                Log.e(TAG, "收到初始化屏幕消息,初始化SurfaceView宽度为" + data.getSendBody());
+                String[] split = data.getSendBody().split(",");
+                int width = Integer.parseInt(split[0]);
+                int height = Integer.parseInt(split[1]);
+                changeSurfaceState(width, height);
+                EncodeV1 encodeV1 = new EncodeV1(ScreenImageApi.LOGIC_REPONSE.MAIN_CMD, ScreenImageApi.LOGIC_REPONSE.GET_START_INFO,
+                        "360,640", new byte[0]);
+                return encodeV1;
+            }
+            return null;
+        }
     }
+
+    private void changeSurfaceState(int width, int height) {
+        runOnUiThread(() -> {
+            RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) sfView.getLayoutParams();
+            layoutParams.width = width;
+            layoutParams.height = height;
+            layoutParams.addRule(RelativeLayout.CENTER_IN_PARENT);
+            sfView.setLayoutParams(layoutParams);
+        });
+    }
+
 
     // TODO: 2018/6/25 去权限设置页
     private void startAppSettings() {
@@ -259,12 +295,12 @@ public class MainActivity extends BaseActivity {
         EventBus.getDefault().unregister(this);
         ScreenImageController.getInstance().stopServer();
         super.onDestroy();
-
     }
 
     @Override
     public void finish() {
         super.finish();
+        ScreenImageController.getInstance().removeOnAcceptTcpStateChangeListener(mListener);
         if (mController != null) mController.stop();
     }
 }

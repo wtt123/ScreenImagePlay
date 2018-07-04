@@ -19,11 +19,11 @@ public class ScreenImageApi {
 
     public class LOGIC_REQUEST {    //客户端向服务器请求的指令
         public static final int MAIN_CMD = 112;
-        public static final int GET_START_INFO = 1; //传输开始投屏需要的关键信息 例 1920,1080(长,宽)
+        public static final int GET_START_INFO = 1; //传输开始投屏需要的关键信息 例 1080,1920(宽,高)
     }
 
     public class LOGIC_REPONSE {    //返回给客户端的指令
         public static final int MAIN_CMD = 111;
-
+        public static final int GET_START_INFO = 1; //传输开始投屏需要的关键信息 例1080,1920(宽,高)
     }
 }

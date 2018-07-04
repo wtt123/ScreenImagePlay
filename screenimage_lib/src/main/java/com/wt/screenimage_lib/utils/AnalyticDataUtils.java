@@ -1,5 +1,7 @@
 package com.wt.screenimage_lib.utils;
 
+import android.util.Log;
+
 import com.wt.screenimage_lib.entity.ReceiveData;
 import com.wt.screenimage_lib.entity.ReceiveHeader;
 
@@ -57,7 +59,27 @@ public class AnalyticDataUtils {
         data.setHeader(receiveHeader);
         data.setSendBody(sendBody == null ? "" : sendBody.toString());
         data.setBuff(buff);
-        mListener.onSuccess(data);
+       if (mListener != null) mListener.onSuccess(data);
+    }
+
+    public ReceiveData synchAnalyticData(InputStream is, ReceiveHeader receiveHeader) throws IOException {
+        byte[] sendBody = null;
+        byte[] buff = null;
+        //文本长度
+        if (receiveHeader.getStringBodylength() != 0) {
+//            sendBody=new byte[2 * 1024];
+            sendBody = readByte(is, receiveHeader.getStringBodylength());
+        }
+        //音视频长度
+        if (receiveHeader.getBuffSize() != 0) {
+            buff = readByte(is, receiveHeader.getBuffSize());
+        }
+        ReceiveData data = new ReceiveData();
+        data.setHeader(receiveHeader);
+        data.setSendBody(sendBody == null ? "" : new String(sendBody));
+        Log.e("wtt", "analyticData: " + new String(sendBody));
+        data.setBuff(buff);
+        return data;
     }
 
     /**

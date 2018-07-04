@@ -23,7 +23,7 @@ import java.nio.ByteBuffer;
 public class VideoPlay {
     private static final String TAG = "VideoPlay";
     private MediaCodec mVideoMediaCodec;
-    private OnFrameChangeListener mListener;
+//    private OnFrameChangeListener mListener;
 
     public VideoPlay(MediaCodec mediaCodec) {
         this.mVideoMediaCodec = mediaCodec;
@@ -73,15 +73,15 @@ public class VideoPlay {
                 }
 
                 int outIndex = mVideoMediaCodec.dequeueOutputBuffer(info, timeoutUs);
-                switch (outIndex) {
-                    case MediaCodec.INFO_OUTPUT_FORMAT_CHANGED:
-                        MediaFormat outputFormat = mVideoMediaCodec.getOutputFormat();
-                        Integer width = outputFormat.getInteger(MediaFormat.KEY_WIDTH);
-                        Integer height = outputFormat.getInteger(MediaFormat.KEY_HEIGHT);
-                        Log.d(TAG, "INFO_OUTPUT_FORMAT_CHANGED == width = " + width + "height = " + height);
-//                        if (mListener != null) mListener.onFrameSize(width, height);
-                        break;
-                }
+//                switch (outIndex) {
+//                    case MediaCodec.INFO_OUTPUT_FORMAT_CHANGED:
+//                        MediaFormat outputFormat = mVideoMediaCodec.getOutputFormat();
+//                        Integer width = outputFormat.getInteger(MediaFormat.KEY_WIDTH);
+//                        Integer height = outputFormat.getInteger(MediaFormat.KEY_HEIGHT);
+//                        Log.d(TAG, "INFO_OUTPUT_FORMAT_CHANGED == width = " + width + "height = " + height);
+////                        if (mListener != null) mListener.onFrameSize(width, height);
+//                        break;
+//                }
 
                 if (outIndex >= 0) {
                     //帧控制是不在这种情况下工作，因为没有PTS H264是可用的
@@ -202,9 +202,9 @@ public class VideoPlay {
         }
     }
 
-    public void setOnFrameChangeListener(OnFrameChangeListener listener) {
-        this.mListener = listener;
-    }
+//    public void setOnFrameChangeListener(OnFrameChangeListener listener) {
+//        this.mListener = listener;
+//    }
 
     public interface OnFrameChangeListener {
         void onFrameSize(int width, int height);

@@ -8,10 +8,6 @@ import android.view.View;
 import com.test.screenimageplay.utils.StatusBarUtil;
 import com.test.screenimageplay.utils.SupportMultipleScreensUtil;
 import com.test.screenimageplay.utils.ToastUtils;
-import com.wt.screenimage_lib.entity.TcpEvent;
-
-import org.greenrobot.eventbus.Subscribe;
-import org.greenrobot.eventbus.ThreadMode;
 
 import butterknife.ButterKnife;
 
@@ -56,28 +52,6 @@ public abstract class BaseActivity extends AppCompatActivity implements View.OnC
     public void onClick(View v) {
 
     }
-
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void acceptReceiverData(TcpEvent event) {
-        if (event.getTcpMsg() == TcpEvent.TCP_CONNECT){
-            acceptTcpConnect();
-        } else if (event.getTcpMsg() == TcpEvent.TCP_DISCONNECT){
-            acceptTcpDisConnect(event.getSize(),event.getE());
-        }
-
-    }
-
-    /**
-     * 收到Tcp连接
-     */
-    protected abstract void acceptTcpConnect();
-
-    /**
-     * 未收到Tcp连接
-     * @param size
-     * @param e
-     */
-    protected abstract void acceptTcpDisConnect(int size, Exception e);
 
     /**
      * 退出程序.

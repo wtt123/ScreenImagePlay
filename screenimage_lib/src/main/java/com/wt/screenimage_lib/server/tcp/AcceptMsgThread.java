@@ -8,13 +8,13 @@ import com.wt.screenimage_lib.entity.Frame;
 import com.wt.screenimage_lib.entity.ReceiveData;
 import com.wt.screenimage_lib.entity.ReceiveHeader;
 import com.wt.screenimage_lib.server.tcp.interf.OnAcceptBuffListener;
-import com.wt.screenimage_lib.server.tcp.interf.OnAcceptTcpStateChangeListener;
 import com.wt.screenimage_lib.utils.AnalyticDataUtils;
 import com.wt.screenimage_lib.utils.DecodeUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.Socket;
 
 /**
  * Created by wt on 2018/6/7.
@@ -23,6 +23,7 @@ import java.io.OutputStream;
 public class AcceptMsgThread extends Thread implements AnalyticDataUtils.OnAnalyticDataListener {
     private InputStream InputStream;
     private OutputStream outputStream;
+    private Socket socket;
     private EncodeV1 mEncodeV1;
     private volatile boolean startFlag = true;
     private OnAcceptBuffListener listener;
@@ -33,10 +34,15 @@ public class AcceptMsgThread extends Thread implements AnalyticDataUtils.OnAnaly
     //当前投屏线程
     private String TAG = "wt";
 
-    public AcceptMsgThread(InputStream is, OutputStream outputStream, EncodeV1 encodeV1, OnAcceptBuffListener
+    public AcceptMsgThread(Socket socket, EncodeV1 encodeV1, OnAcceptBuffListener
             listener, OnTcpChangeListener tcpListener) {
-        this.InputStream = is;
-        this.outputStream = outputStream;
+        this.socket = socket;
+        try {
+            this.InputStream = socket.getInputStream();
+            this.outputStream = socket.getOutputStream();
+        } catch (Exception e) {
+
+        }
         this.mEncodeV1 = encodeV1;
         this.listener = listener;
         this.mTcpListener = tcpListener;
@@ -94,7 +100,6 @@ public class AcceptMsgThread extends Thread implements AnalyticDataUtils.OnAnaly
             if (mTcpListener != null) {
                 mTcpListener.connect(this);
             }
-
         } catch (IOException e) {
             if (mTcpListener != null) {
                 Log.e(TAG, "sendStartMessage: 断开2");
