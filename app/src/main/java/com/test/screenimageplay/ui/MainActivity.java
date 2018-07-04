@@ -287,7 +287,7 @@ public class MainActivity extends BaseActivity implements OnAcceptTcpStateChange
       if (!state.equals(currentIP)){
           updateUI(state);
       }
-    };
+    }
 
     @Override
     protected void onDestroy() {
