@@ -9,6 +9,9 @@ import com.test.screenimageplay.utils.StatusBarUtil;
 import com.test.screenimageplay.utils.SupportMultipleScreensUtil;
 import com.test.screenimageplay.utils.ToastUtils;
 
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
+
 import butterknife.ButterKnife;
 
 
