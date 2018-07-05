@@ -153,7 +153,7 @@ public class AcceptMsgThread extends Thread implements AnalyticDataUtils.OnAnaly
         if (receiveHeader.getMainCmd() == 0xA2) {
             switch (receiveHeader.getSubCmd()) {
                 //解析音视频播放
-                case 0x01:
+                case ScreenImageApi.RECORD.DATE_PALY:
                     //解析拆分帧数据
                     mAnalyticDataUtils.analyticData(InputStream, receiveHeader);
                     break;

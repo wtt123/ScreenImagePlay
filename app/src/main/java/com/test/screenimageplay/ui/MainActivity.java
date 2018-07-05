@@ -11,6 +11,7 @@ import android.os.Build;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
+import android.os.PowerManager;
 import android.provider.Settings;
 import android.support.annotation.RequiresApi;
 import android.text.TextUtils;
@@ -74,6 +75,7 @@ public class MainActivity extends BaseActivity {
     private NetWorkStateReceiver netWorkStateReceiver;
     private String currentIP;
     private MyOnServerStateChangeListener mListener;
+    private PowerManager.WakeLock mWakeLock;
     private Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -89,7 +91,6 @@ public class MainActivity extends BaseActivity {
             }
         }
     };
-
 
 
     @Override
@@ -129,6 +130,7 @@ public class MainActivity extends BaseActivity {
             }
         });
     }
+
     @Override
     protected void initData() {
         RxPermissions rxPermissions = new RxPermissions(this);
@@ -136,7 +138,8 @@ public class MainActivity extends BaseActivity {
                 Manifest.permission.ACCESS_NETWORK_STATE,
                 Manifest.permission.ACCESS_WIFI_STATE,
                 Manifest.permission.READ_EXTERNAL_STORAGE,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE};
+                Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                Manifest.permission.WAKE_LOCK};
         rxPermissions
                 .requestEach(permissions)
                 .subscribe(permission -> { // will emit 2 Permission objects
@@ -150,6 +153,7 @@ public class MainActivity extends BaseActivity {
                         ToastUtils.showShort(mContext, "拒绝权限，不再弹出询问框，请前往APP应用设置中打开此权限");
                     }
                 });
+        acquireWakeLock();
         if (!NetWorkUtils.isWifiActive(mContext)) {
             ToastUtils.showShort(mContext, "请先连接无线网！！");
             return;
@@ -253,8 +257,8 @@ public class MainActivity extends BaseActivity {
     private void changeSurfaceState(int width, int height) {
         runOnUiThread(() -> {
             RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) sfView.getLayoutParams();
-            int w= DensityUtil.dip2px(mContext,width);
-            int h=DensityUtil.dip2px(mContext,height);
+            int w = DensityUtil.dip2px(mContext, width);
+            int h = DensityUtil.dip2px(mContext, height);
             layoutParams.width = w;
             layoutParams.height = h;
             layoutParams.addRule(RelativeLayout.CENTER_IN_PARENT);
@@ -287,12 +291,39 @@ public class MainActivity extends BaseActivity {
     // TODO: 2018/7/2 ip切换时更新当前ui
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(String state) {
-        Log.e("wtt", "onMessageEvent: "+state );
-      if (!state.equals(currentIP)){
-          updateUI(state);
-      }
+        Log.e("wtt", "onMessageEvent: " + state);
+        updateUI(state);
+
     }
 
+    private void acquireWakeLock() {
+        if (mWakeLock == null) {
+
+            PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+
+            mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP,
+
+                    this.getClass().getCanonicalName());
+
+            mWakeLock.acquire();
+
+
+        }
+
+
+    }
+
+
+    private void releaseWakeLock() {
+        if (mWakeLock != null) {
+
+            mWakeLock.release();
+
+            mWakeLock = null;
+
+        }
+
+    }
 
     @Override
     protected void onDestroy() {
@@ -300,6 +331,7 @@ public class MainActivity extends BaseActivity {
         mHandler.removeCallbacksAndMessages(null);
         EventBus.getDefault().unregister(this);
         ScreenImageController.getInstance().stopServer();
+        releaseWakeLock();
         super.onDestroy();
     }
 

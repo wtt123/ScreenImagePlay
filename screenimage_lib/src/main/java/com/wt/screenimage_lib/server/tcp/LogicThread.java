@@ -36,7 +36,7 @@ public class LogicThread extends Thread {
         super.run();
         try {
             ReceiveData receiveData = mAnalyticDataUtils.
-                    synchAnalyticData(mSocket.getInputStream(), mHeader);
+                    analyticData(mSocket.getInputStream(), mHeader);
             mSocket.getOutputStream();
             if (mListener != null) {
                 EncodeV1 encodeV1 = mListener.onAcceptLogicMsg(receiveData);

@@ -44,7 +44,7 @@ public class AnalyticDataUtils {
 
 
     // TODO: 2018/6/11 wt处理协议相应指令
-    public void analyticData(InputStream is, ReceiveHeader receiveHeader) throws IOException {
+    public ReceiveData analyticData(InputStream is, ReceiveHeader receiveHeader) throws IOException {
         byte[] sendBody = null;
         byte[] buff = null;
         //文本长度
@@ -52,35 +52,36 @@ public class AnalyticDataUtils {
             sendBody = readByte(is, receiveHeader.getStringBodylength());
         }
 
-        if (receiveHeader.getBuffSize() != 0) {
-            buff = readByte(is, receiveHeader.getBuffSize());
-        }
-        ReceiveData data = new ReceiveData();
-        data.setHeader(receiveHeader);
-        data.setSendBody(sendBody == null ? "" : sendBody.toString());
-        data.setBuff(buff);
-       if (mListener != null) mListener.onSuccess(data);
-    }
-
-    // TODO: 2018/7/5 wt 解析头数据
-    public ReceiveData synchAnalyticData(InputStream is, ReceiveHeader receiveHeader) throws IOException {
-        byte[] sendBody = null;
-        byte[] buff = null;
-        //文本长度
-        if (receiveHeader.getStringBodylength() != 0) {
-            sendBody = readByte(is, receiveHeader.getStringBodylength());
-        }
-        //音视频长度
         if (receiveHeader.getBuffSize() != 0) {
             buff = readByte(is, receiveHeader.getBuffSize());
         }
         ReceiveData data = new ReceiveData();
         data.setHeader(receiveHeader);
         data.setSendBody(sendBody == null ? "" : new String(sendBody));
-        Log.e("wtt", "analyticData: " + new String(sendBody));
         data.setBuff(buff);
+       if (mListener != null) mListener.onSuccess(data);
         return data;
     }
+
+//    // TODO: 2018/7/5 wt 解析头数据
+//    public ReceiveData synchAnalyticData(InputStream is, ReceiveHeader receiveHeader) throws IOException {
+//        byte[] sendBody = null;
+//        byte[] buff = null;
+//        //文本长度
+//        if (receiveHeader.getStringBodylength() != 0) {
+//            sendBody = readByte(is, receiveHeader.getStringBodylength());
+//        }
+//        //音视频长度
+//        if (receiveHeader.getBuffSize() != 0) {
+//            buff = readByte(is, receiveHeader.getBuffSize());
+//        }
+//        ReceiveData data = new ReceiveData();
+//        data.setHeader(receiveHeader);
+//        data.setSendBody(sendBody == null ? "" : new String(sendBody));
+//        Log.e("wtt", "analyticData: " + new String(sendBody));
+//        data.setBuff(buff);
+//        return data;
+//    }
 
     /**
      * 保证从流里读到指定长度数据
