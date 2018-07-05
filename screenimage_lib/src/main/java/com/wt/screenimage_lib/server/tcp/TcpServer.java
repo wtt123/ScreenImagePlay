@@ -99,7 +99,7 @@ public class TcpServer implements AcceptMsgThread.OnTcpChangeListener {
                 } catch (Exception e) {
                     Log.e(TAG, "" + e.toString());
                 } finally {
-                    showLog("socket has close");
+                    Log.e(TAG, "run: socket has close");
                     try {
                         serverSocket.close();
                     } catch (IOException e) {
@@ -115,7 +115,7 @@ public class TcpServer implements AcceptMsgThread.OnTcpChangeListener {
     }
 
     public void stopServer() {
-        showLog("stop server");
+        Log.e(TAG, "stopServer: stop server");
         this.mListener = null;
         isAccept = false;
         new Thread() {
