@@ -35,7 +35,7 @@ public class NormalPlayQueue {
 
     private ScanThread mScanThread;
     private volatile boolean mScanFlag;
-    private boolean isDebug = false;
+    private boolean isDebug = true;
 
     public NormalPlayQueue() {
         mScanFlag = true;
@@ -48,6 +48,7 @@ public class NormalPlayQueue {
     public Frame takeByte() {
         try {
             Frame frame = mPlayQueue.take();
+            showLog("playqueue count = " + mPlayQueue.size());
             if (frame.getType() == Frame.KEY_FRAME) mKeyFrameCount.getAndDecrement();
             mOutFrameCount.getAndIncrement();
             mTotalFrameCount.getAndDecrement();

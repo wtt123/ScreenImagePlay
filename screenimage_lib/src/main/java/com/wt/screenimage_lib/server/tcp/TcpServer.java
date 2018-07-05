@@ -61,6 +61,7 @@ public class TcpServer implements AcceptMsgThread.OnTcpChangeListener {
                     InetSocketAddress socketAddress = new InetSocketAddress(Constants.TCPPORT);
                     serverSocket.bind(socketAddress);
                     acceptMsgThreadList.clear();
+                    Log.d(TAG, "start server success");
                     while (isAccept) {
                         //服务端接收客户端的连接请求
                         Socket socket = serverSocket.accept();
@@ -85,7 +86,7 @@ public class TcpServer implements AcceptMsgThread.OnTcpChangeListener {
                             acceptMsgThreadList.add(acceptMsgThread);
                             Log.e("run: ","wtt" + acceptMsgThreadList.size());
                             if (acceptMsgThreadList.size() > 1) {
-                                return;
+                                continue;
                             }
                             //默认先发送成功标识给第一个客户端
                             acceptMsgThreadList.get(0).sendStartMessage();
@@ -96,7 +97,14 @@ public class TcpServer implements AcceptMsgThread.OnTcpChangeListener {
                         }
                     }
                 } catch (Exception e) {
-                    Log.e("TcpServer", "" + e.toString());
+                    Log.e(TAG, "" + e.toString());
+                } finally {
+                    showLog("socket has close");
+                    try {
+                        serverSocket.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         }.start();
@@ -107,6 +115,7 @@ public class TcpServer implements AcceptMsgThread.OnTcpChangeListener {
     }
 
     public void stopServer() {
+        showLog("stop server");
         this.mListener = null;
         isAccept = false;
         new Thread() {
@@ -146,6 +155,7 @@ public class TcpServer implements AcceptMsgThread.OnTcpChangeListener {
      */
     public void disconnectListener(Exception e) {
         ArrayList<OnServerStateChangeListener> mList = ScreenImageController.getInstance().mList;
+
         if (mList == null) return;
         for (OnServerStateChangeListener listener : mList) {
             listener.acceptH264TcpDisConnect(e, currentSize());
