@@ -31,8 +31,9 @@ public class AcceptMsgThread extends Thread implements AnalyticDataUtils.OnAnaly
 
     private DecodeUtils mDecoderUtils;
     private AnalyticDataUtils mAnalyticDataUtils;
+    private boolean isSendSuccess = false;  //允许投屏
     //当前投屏线程
-    private String TAG = "wt";
+    private String TAG = "AcceptMsgThread";
 
     public AcceptMsgThread(Socket socket, EncodeV1 encodeV1, OnAcceptBuffListener
             listener, OnTcpChangeListener tcpListener) {
@@ -92,17 +93,19 @@ public class AcceptMsgThread extends Thread implements AnalyticDataUtils.OnAnaly
 
     // TODO: 2018/6/14 向客户端回传初始化成功标识 @param size 当前线程集合里的投屏设备数量
     public void sendStartMessage() {
-        Log.e(TAG, "sendStartMessage: 发送成功标识");
+        Log.d(TAG, "sendStartMessage: 发送成功标识");
         //告诉客户端我已经初始化成功
         byte[] content = mEncodeV1.buildSendContent();
         try {
             outputStream.write(content);
+            isSendSuccess = true;
             if (mTcpListener != null) {
                 mTcpListener.connect(this);
             }
         } catch (IOException e) {
             if (mTcpListener != null) {
                 Log.e(TAG, "sendStartMessage: 断开2");
+                isSendSuccess = false;
                 mTcpListener.disconnect(e, this);
             }
         }
@@ -111,7 +114,9 @@ public class AcceptMsgThread extends Thread implements AnalyticDataUtils.OnAnaly
     @Override
     public void run() {
         super.run();
+        mAnalyticDataUtils.startNetSpeedCalculate();
         readMessage();
+        mAnalyticDataUtils.stop();
     }
 
     // TODO: 2018/6/14 去读取数据
@@ -121,7 +126,7 @@ public class AcceptMsgThread extends Thread implements AnalyticDataUtils.OnAnaly
                 //开始接收客户端发过来的数据
                 byte[] header = mAnalyticDataUtils.readByte(InputStream, 18);
                 //数据如果为空，则休眠，防止cpu空转,  0.0 不可能会出现的,会一直阻塞在之前
-                if (header.length == 0) {
+                if (header == null || header.length == 0) {
                     SystemClock.sleep(1);
                     continue;
                 }
@@ -135,12 +140,18 @@ public class AcceptMsgThread extends Thread implements AnalyticDataUtils.OnAnaly
                     Log.e(TAG, "接收到的数据格式不对...");
                     continue;
                 }
-                operation(receiveHeader, InputStream);
+                ReceiveData receiveData = mAnalyticDataUtils.synchAnalyticData(InputStream, receiveHeader);
+                if (receiveData == null || receiveData.getBuff() == null) {
+                    continue;
+                }
+                //区分音视频
+                mDecoderUtils.isCategory(receiveData.getBuff());
             }
         } catch (Exception e) {
             if (mTcpListener != null) {
                 Log.e(TAG, "readMessage: = " + e.toString());
                 mTcpListener.disconnect(e, this);
+                isSendSuccess = false;
             }
         } finally {
             startFlag = false;
@@ -155,7 +166,7 @@ public class AcceptMsgThread extends Thread implements AnalyticDataUtils.OnAnaly
                 //解析音视频播放
                 case ScreenImageApi.RECORD.DATE_PALY:
                     //解析拆分帧数据
-                    mAnalyticDataUtils.analyticData(InputStream, receiveHeader);
+
                     break;
             }
         }
@@ -165,6 +176,7 @@ public class AcceptMsgThread extends Thread implements AnalyticDataUtils.OnAnaly
     // TODO: 2018/6/14 中止线程
     public void shutdown() {
         startFlag = false;
+        if (mAnalyticDataUtils != null) mAnalyticDataUtils.stop();
         //中断非阻塞状态线程
         this.interrupt();
     }
@@ -180,9 +192,16 @@ public class AcceptMsgThread extends Thread implements AnalyticDataUtils.OnAnaly
         mDecoderUtils.isCategory(data.getBuff());
     }
 
+    @Override
+    public void netSpeed(String msg) {
+        if (mTcpListener != null && isSendSuccess) mTcpListener.netspeed(msg);
+    }
+
     public interface OnTcpChangeListener {
         void disconnect(Exception e, AcceptMsgThread thread);
 
         void connect(AcceptMsgThread thread);
+
+        void netspeed(String netSpeed);
     }
 }

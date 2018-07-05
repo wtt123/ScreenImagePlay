@@ -216,6 +216,12 @@ public class MainActivity extends BaseActivity {
     class MyOnServerStateChangeListener extends OnServerStateChangeListener {
 
         @Override
+        public void acceptH264TcpNetSpeed(String netSpeed) {
+            super.acceptH264TcpNetSpeed(netSpeed);
+            Log.e(TAG, "netSpeed = " + netSpeed);
+        }
+
+        @Override
         public void acceptH264TcpConnect(int currentSize) {
             //接收到客户端的连接...
             Log.e(TAG, " acceptH264TcpConnect 接收到客户端的连接...");
@@ -292,8 +298,14 @@ public class MainActivity extends BaseActivity {
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(String state) {
         Log.e("wtt", "onMessageEvent: " + state);
+<<<<<<< HEAD
         updateUI(state);
 
+=======
+        if (!state.equals(currentIP)) {
+            updateUI(state);
+        }
+>>>>>>> df5891941c1b36213e8ad9d032e8eff5395a37a0
     }
 
     private void acquireWakeLock() {

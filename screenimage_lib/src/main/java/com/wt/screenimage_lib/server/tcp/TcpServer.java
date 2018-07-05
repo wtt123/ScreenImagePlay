@@ -39,7 +39,7 @@ public class TcpServer implements AcceptMsgThread.OnTcpChangeListener {
     private AnalyticDataUtils mAnalyticUtils;
 
     public TcpServer() {
-        this.acceptMsgThreadList = new ArrayList<>();
+        acceptMsgThreadList = new ArrayList<>();
         mAnalyticUtils = new AnalyticDataUtils();
         init();
     }
@@ -84,7 +84,7 @@ public class TcpServer implements AcceptMsgThread.OnTcpChangeListener {
                             acceptMsgThread.start();
                             //把线程添加到集合中去
                             acceptMsgThreadList.add(acceptMsgThread);
-                            Log.e("run: ","wtt" + acceptMsgThreadList.size());
+                            Log.e("run: ", "wtt" + acceptMsgThreadList.size());
                             if (acceptMsgThreadList.size() > 1) {
                                 continue;
                             }
@@ -150,6 +150,7 @@ public class TcpServer implements AcceptMsgThread.OnTcpChangeListener {
         }
         return null;
     }
+
     /**
      * 所有listener执行uankai断开回调
      */
@@ -197,6 +198,15 @@ public class TcpServer implements AcceptMsgThread.OnTcpChangeListener {
     @Override
     public void connect(AcceptMsgThread thread) {
         connectListener();
+    }
+
+    @Override
+    public void netspeed(String netSpeed) {
+        ArrayList<OnServerStateChangeListener> mList = ScreenImageController.getInstance().mList;
+        if (mList == null) return;
+        for (OnServerStateChangeListener listener : mList) {
+            listener.acceptH264TcpNetSpeed(netSpeed);
+        }
     }
 
 
