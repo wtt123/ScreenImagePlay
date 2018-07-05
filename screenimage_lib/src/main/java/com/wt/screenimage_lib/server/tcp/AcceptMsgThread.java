@@ -32,7 +32,7 @@ public class AcceptMsgThread extends Thread implements AnalyticDataUtils.OnAnaly
     private DecodeUtils mDecoderUtils;
     private AnalyticDataUtils mAnalyticDataUtils;
     //当前投屏线程
-    private String TAG = "wt";
+    private String TAG = "AcceptMsgThread";
 
     public AcceptMsgThread(Socket socket, EncodeV1 encodeV1, OnAcceptBuffListener
             listener, OnTcpChangeListener tcpListener) {
@@ -92,7 +92,7 @@ public class AcceptMsgThread extends Thread implements AnalyticDataUtils.OnAnaly
 
     // TODO: 2018/6/14 向客户端回传初始化成功标识 @param size 当前线程集合里的投屏设备数量
     public void sendStartMessage() {
-        Log.e(TAG, "sendStartMessage: 发送成功标识");
+        Log.d(TAG, "sendStartMessage: 发送成功标识");
         //告诉客户端我已经初始化成功
         byte[] content = mEncodeV1.buildSendContent();
         try {
@@ -121,7 +121,7 @@ public class AcceptMsgThread extends Thread implements AnalyticDataUtils.OnAnaly
                 //开始接收客户端发过来的数据
                 byte[] header = mAnalyticDataUtils.readByte(InputStream, 18);
                 //数据如果为空，则休眠，防止cpu空转,  0.0 不可能会出现的,会一直阻塞在之前
-                if (header.length == 0) {
+                if (header == null || header.length == 0) {
                     SystemClock.sleep(1);
                     continue;
                 }
@@ -135,7 +135,14 @@ public class AcceptMsgThread extends Thread implements AnalyticDataUtils.OnAnaly
                     Log.e(TAG, "接收到的数据格式不对...");
                     continue;
                 }
-                operation(receiveHeader, InputStream);
+                long currentTime = System.currentTimeMillis();
+                ReceiveData receiveData = mAnalyticDataUtils.synchAnalyticData(InputStream, receiveHeader);
+                Log.d(TAG, "read a frame spend time = " + (System.currentTimeMillis() - currentTime) + "ms");
+                if (receiveData == null || receiveData.getBuff() == null) {
+                    continue;
+                }
+                //区分音视频
+                mDecoderUtils.isCategory(receiveData.getBuff());
             }
         } catch (Exception e) {
             if (mTcpListener != null) {
@@ -155,7 +162,7 @@ public class AcceptMsgThread extends Thread implements AnalyticDataUtils.OnAnaly
                 //解析音视频播放
                 case 0x01:
                     //解析拆分帧数据
-                    mAnalyticDataUtils.analyticData(InputStream, receiveHeader);
+
                     break;
             }
         }

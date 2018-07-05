@@ -77,7 +77,6 @@ public class AnalyticDataUtils {
         ReceiveData data = new ReceiveData();
         data.setHeader(receiveHeader);
         data.setSendBody(sendBody == null ? "" : new String(sendBody));
-        Log.e("wtt", "analyticData: " + new String(sendBody));
         data.setBuff(buff);
         return data;
     }
