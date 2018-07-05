@@ -4,6 +4,7 @@ import android.app.Application;
 
 import com.test.screenimageplay.utils.SupportMultipleScreensUtil;
 import com.uuzuche.lib_zxing.activity.ZXingLibrary;
+import com.wt.screenimage_lib.ScreenImageController;
 
 
 /**
@@ -16,6 +17,10 @@ public class MyApplication extends Application {
         super.onCreate();
         SupportMultipleScreensUtil.init(this);
         ZXingLibrary.initDisplayOpinion(this);
+        initScreenImage();
+    }
+
+    private void initScreenImage() {
 
     }
 }

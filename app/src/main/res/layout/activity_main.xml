@@ -4,12 +4,14 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#000"
     tools:context=".ui.MainActivity">
 
     <SurfaceView
         android:id="@+id/sf_view"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
         android:visibility="gone" />
 
     <LinearLayout
@@ -28,7 +30,7 @@
             android:text="null"
             android:textColor="#fff"
             android:textSize="56px"
-            android:textStyle="bold"/>
+            android:textStyle="bold" />
 
         <TextView
             android:id="@+id/tv_wife_name"
@@ -42,8 +44,8 @@
             android:id="@+id/iv_code"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="100px"
-            android:layout_gravity="center" />
+            android:layout_gravity="center"
+            android:layout_marginTop="100px" />
 
         <TextView
             android:id="@+id/tv_msg"

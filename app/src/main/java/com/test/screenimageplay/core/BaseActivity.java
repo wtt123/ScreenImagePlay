@@ -3,14 +3,14 @@ package com.test.screenimageplay.core;
 import android.app.Activity;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
-import android.view.Window;
-import android.view.WindowManager;
 
 import com.test.screenimageplay.utils.StatusBarUtil;
 import com.test.screenimageplay.utils.SupportMultipleScreensUtil;
 import com.test.screenimageplay.utils.ToastUtils;
+
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
 import butterknife.ButterKnife;
 
@@ -18,7 +18,7 @@ import butterknife.ButterKnife;
 /**
  * Created by wt on 2018/5/28.
  */
-public abstract class BaseActivity extends AppCompatActivity implements View.OnClickListener{
+public abstract class BaseActivity extends AppCompatActivity implements View.OnClickListener {
     private static long lastTimeStamp = 0l;
 
 
@@ -38,6 +38,7 @@ public abstract class BaseActivity extends AppCompatActivity implements View.OnC
     }
 
     protected abstract void initView();
+
     protected abstract void initData();
 
     protected int getLayoutId() {

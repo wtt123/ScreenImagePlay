@@ -20,25 +20,27 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.tbruyelle.rxpermissions2.RxPermissions;
 import com.test.screenimageplay.R;
-import com.test.screenimageplay.constant.ScreenImageApi;
 import com.test.screenimageplay.core.BaseActivity;
-import com.test.screenimageplay.decode.DecodeThread;
-import com.test.screenimageplay.entity.Frame;
-import com.test.screenimageplay.mediacodec.VIdeoMediaCodec;
-import com.test.screenimageplay.server.tcp.AcceptMsgThread;
-import com.test.screenimageplay.server.NetWorkStateReceiver;
-import com.test.screenimageplay.server.tcp.NormalPlayQueue;
-import com.test.screenimageplay.server.tcp.TcpServer;
-import com.test.screenimageplay.server.tcp.interf.OnAcceptBuffListener;
-import com.test.screenimageplay.server.tcp.interf.OnAcceptTcpStateChangeListener;
+
+import com.test.screenimageplay.boastcast.NetWorkStateReceiver;
 import com.test.screenimageplay.utils.AboutIpUtils;
 import com.test.screenimageplay.utils.NetWorkUtils;
+import com.test.screenimageplay.utils.SupportMultipleScreensUtil;
 import com.test.screenimageplay.utils.ToastUtils;
 import com.uuzuche.lib_zxing.activity.CodeUtils;
+import com.wt.screenimage_lib.ScreenImageApi;
+import com.wt.screenimage_lib.ScreenImageController;
+import com.wt.screenimage_lib.control.VideoPlayController;
+import com.wt.screenimage_lib.entity.ReceiveData;
+import com.wt.screenimage_lib.server.tcp.EncodeV1;
+import com.wt.screenimage_lib.server.tcp.interf.OnServerStateChangeListener;
+import com.wt.screenimage_lib.utils.DensityUtil;
+
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -50,7 +52,7 @@ import java.io.IOException;
 
 import butterknife.BindView;
 
-public class MainActivity extends BaseActivity implements OnAcceptTcpStateChangeListener, OnAcceptBuffListener {
+public class MainActivity extends BaseActivity {
 
     @BindView(R.id.iv_code)
     ImageView ivCode;
@@ -63,15 +65,15 @@ public class MainActivity extends BaseActivity implements OnAcceptTcpStateChange
     @BindView(R.id.tv_wife_name)
     TextView tvWifeName;
 
+    private VideoPlayController mController;
     private SurfaceHolder mSurfaceHolder;
     private FileOutputStream fos;
-    private VIdeoMediaCodec videoMediaCodec;
-    private DecodeThread mDecodeThread;
-    private NormalPlayQueue mPlayqueue;
-    private TcpServer mTcpServer;
-    private String TAG = "wt";
+
+    private String TAG = "wtt";
     private Context mContext;
     private NetWorkStateReceiver netWorkStateReceiver;
+    private String currentIP;
+    private MyOnServerStateChangeListener mListener;
     private Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -87,7 +89,7 @@ public class MainActivity extends BaseActivity implements OnAcceptTcpStateChange
             }
         }
     };
-    private String currentIP;
+
 
 
     @Override
@@ -99,35 +101,34 @@ public class MainActivity extends BaseActivity implements OnAcceptTcpStateChange
     protected void initView() {
         mContext = this;
         EventBus.getDefault().register(this);
-        initialFIle();
         startServer();
+        initialFIle();
         //surface保证他们进行交互，当surface销毁之后，surfaceholder断开surface及其客户端的联系
-        mPlayqueue = new NormalPlayQueue();
         mSurfaceHolder = sfView.getHolder();
+        mController = new VideoPlayController();
         //监听surface的生命周期
         mSurfaceHolder.addCallback(new SurfaceHolder.Callback() {
             @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
             @Override
             public void surfaceCreated(SurfaceHolder holder) {
                 //Surface创建时激发，一般在这里调用画面的线程
-                initialMediaCodec(holder);
+                mController.surfaceCreate(holder);
             }
 
             @Override
             public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
                 //Surface的大小发生改变时调用。
+                Log.e(TAG, "surface change width = " + width + " height = " + height);
             }
 
             @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
             @Override
             public void surfaceDestroyed(SurfaceHolder holder) {
                 //销毁时激发，一般在这里将画面的线程停止、释放。
-                releaseMediaCodec();
+                mController.surfaceDestrory();
             }
         });
     }
-
-
     @Override
     protected void initData() {
         RxPermissions rxPermissions = new RxPermissions(this);
@@ -161,7 +162,14 @@ public class MainActivity extends BaseActivity implements OnAcceptTcpStateChange
         updateUI(currentIP);
     }
 
-  
+
+    private void startServer() {
+        ScreenImageController.getInstance()
+                .init(getApplication()).startServer();
+        mListener = new MyOnServerStateChangeListener();
+        ScreenImageController.getInstance().addOnAcceptTcpStateChangeListener(mListener);
+    }
+
 
     // TODO: 2018/6/12 wt用于本地测试
     private void initialFIle() {
@@ -178,31 +186,12 @@ public class MainActivity extends BaseActivity implements OnAcceptTcpStateChange
         }
     }
 
-    private void startServer() {
-        //开启服务
-        mTcpServer = new TcpServer();
-        //发送初始化成功指令
-        mTcpServer.setBackpassBody(ScreenImageApi.SERVER.MAIN_CMD,
-                ScreenImageApi.SERVER.INITIAL_SUCCESS, "初始化成功", new byte[0]);
-        mTcpServer.setOnAccepttBuffListener(this);
-        mTcpServer.setOnTcpConnectListener(this);
-        mTcpServer.startServer();
-    }
-
 
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
-    private void initialMediaCodec(SurfaceHolder holder) {
-        //初始化解码器
-        Log.e(TAG, "initial play queue");
-        videoMediaCodec = new VIdeoMediaCodec(holder);
-        //开启解码线程
-        mDecodeThread = new DecodeThread(videoMediaCodec.getCodec(), mPlayqueue);
-        videoMediaCodec.start();
-        mDecodeThread.start();
-    }
+
 
     private void updateUI(String currentIP) {
-        Log.e(TAG, "initData: xxx" +currentIP);
+        Log.e(TAG, "initData: xxx" + currentIP);
         //以ip生成二维码
         Bitmap bitmap = CodeUtils.createImage(currentIP, 500, 500,
                 null);
@@ -210,55 +199,70 @@ public class MainActivity extends BaseActivity implements OnAcceptTcpStateChange
         ivCode.setImageBitmap(bitmap);
         if (!TextUtils.isEmpty(AboutIpUtils.getDeviceModel())) {
             tvDeviceName.setText(AboutIpUtils.getDeviceModel());
-        }else {
+        } else {
             tvDeviceName.setText("null");
         }
         if (!TextUtils.isEmpty(AboutIpUtils.getWinfeName(mContext))) {
             tvWifeName.setText("Wife：" + AboutIpUtils.getWinfeName(mContext));
-        }else {
+        } else {
             tvWifeName.setText("Wife：null");
         }
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
-    // TODO: 2018/6/27 释放资源
-    public void releaseMediaCodec() {
-        mPlayqueue.stop();
-        mDecodeThread.shutdown();
+    class MyOnServerStateChangeListener extends OnServerStateChangeListener {
 
-    }
-
-    //Tcp连接状态的回调...
-    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
-    @Override
-    public void acceptTcpConnect(AcceptMsgThread acceptMsgThread) {
-        //接收到客户端的连接...
-        Log.e(TAG, "接收到客户端的连接...");
-        mTcpServer.setacceptTcpConnect(acceptMsgThread);
-        Message msg = new Message();
-        msg.what = 1;
-        mHandler.sendMessage(msg);
-    }
-
-    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
-    @Override
-    public void acceptTcpDisConnect(Exception e, AcceptMsgThread acceptMsgThread) {
-        //客户端的连接断开...
-        Log.e(TAG, "客户端的连接断开..." + e.toString());
-        mTcpServer.setacceptTcpDisConnect(mContext,acceptMsgThread);
-        if (mTcpServer.currentSize() < 1) {
+        @Override
+        public void acceptH264TcpConnect(int currentSize) {
+            //接收到客户端的连接...
+            Log.e(TAG, " acceptH264TcpConnect 接收到客户端的连接...");
             Message msg = new Message();
-            msg.what = 2;
+            msg.what = 1;
             mHandler.sendMessage(msg);
+        }
+
+        @Override
+        public void acceptH264TcpDisConnect(Exception e, int currentSize) {
+            //客户端的连接断开...
+            Log.e(TAG, " acceptH264TcpDisConnect 客户端的连接断开..." + e.toString());
+            if (currentSize < 1) {
+                Message msg = new Message();
+                msg.what = 2;
+                mHandler.sendMessage(msg);
+            }
+        }
+
+        @Override
+        public EncodeV1 acceptLogicTcpMsg(ReceiveData data) {   //处理收到的消息逻辑,在子线程执行,返回的EnvodeV1的内容会在本次Tcp连接中返回
+            if (data.getHeader().getMainCmd() == ScreenImageApi.LOGIC_REQUEST.MAIN_CMD &&
+                    data.getHeader().getSubCmd() == ScreenImageApi.LOGIC_REQUEST.GET_START_INFO) {
+                //收到初始化信息
+                Log.e(TAG, "收到初始化屏幕消息,初始化SurfaceView宽度为" + data.getSendBody());
+                String[] split = data.getSendBody().split(",");
+                int width = Integer.parseInt(split[0]);
+                int height = Integer.parseInt(split[1]);
+                changeSurfaceState(width, height);
+                EncodeV1 encodeV1 = new EncodeV1(ScreenImageApi.LOGIC_REPONSE.MAIN_CMD, ScreenImageApi.LOGIC_REPONSE.GET_START_INFO,
+                        "480,800", new byte[0]);
+                return encodeV1;
+            }
+            return null;
         }
     }
 
-    //接收到关于不同帧类型的回调
-    @Override
-    public void acceptBuff(Frame frame) {
-        //存入缓存
-        mPlayqueue.putByte(frame);
+    // TODO: 2018/7/4 改变sf的大小
+    private void changeSurfaceState(int width, int height) {
+        runOnUiThread(() -> {
+            RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) sfView.getLayoutParams();
+            int w= DensityUtil.dip2px(mContext,width);
+            int h=DensityUtil.dip2px(mContext,height);
+            layoutParams.width = w;
+            layoutParams.height = h;
+            layoutParams.addRule(RelativeLayout.CENTER_IN_PARENT);
+            sfView.setLayoutParams(layoutParams);
+            SupportMultipleScreensUtil.scale(sfView);
+        });
     }
+
 
     // TODO: 2018/6/25 去权限设置页
     private void startAppSettings() {
@@ -289,22 +293,20 @@ public class MainActivity extends BaseActivity implements OnAcceptTcpStateChange
       }
     }
 
+
     @Override
     protected void onDestroy() {
         unregisterReceiver(netWorkStateReceiver);
         mHandler.removeCallbacksAndMessages(null);
         EventBus.getDefault().unregister(this);
+        ScreenImageController.getInstance().stopServer();
         super.onDestroy();
-
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     @Override
     public void finish() {
-        if (mPlayqueue != null) mPlayqueue.stop();
-        if (videoMediaCodec != null) videoMediaCodec.release();
-        if (mDecodeThread != null) mDecodeThread.shutdown();
-        if (mTcpServer != null) mTcpServer.stopServer();
         super.finish();
+        ScreenImageController.getInstance().removeOnAcceptTcpStateChangeListener(mListener);
+        if (mController != null) mController.stop();
     }
 }
