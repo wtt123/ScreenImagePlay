@@ -49,7 +49,7 @@ public class DecodeThread extends Thread {
                 case Frame.NORMAL_FRAME:
                     try {
                         videoPlay.decodeH264(frame.getBytes());
-                        Log.i(TAG, "receive normal frame");
+                        Log.i(TAG, "receive a frame count");
                     } catch (Exception e) {
                         Log.e(TAG, "frame Exception" + e.toString());
                     }
