@@ -19,12 +19,16 @@ public abstract class OnServerStateChangeListener {
      * by wt
      * 接收到客户端的Tcp断开连接
      *
-     * @param e               异常提示
+     * @param e           异常提示
      * @param currentSize 当前投屏线程
      */
     public abstract void acceptH264TcpDisConnect(Exception e, int currentSize);
 
     //接到逻辑消息
     public abstract EncodeV1 acceptLogicTcpMsg(ReceiveData data);
+
+    public void acceptH264TcpNetSpeed(String netSpeed) {
+
+    }
 
 }

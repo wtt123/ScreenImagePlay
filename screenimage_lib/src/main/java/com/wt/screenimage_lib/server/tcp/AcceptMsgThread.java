@@ -31,6 +31,7 @@ public class AcceptMsgThread extends Thread implements AnalyticDataUtils.OnAnaly
 
     private DecodeUtils mDecoderUtils;
     private AnalyticDataUtils mAnalyticDataUtils;
+    private boolean isSendSuccess = false;  //允许投屏
     //当前投屏线程
     private String TAG = "AcceptMsgThread";
 
@@ -97,12 +98,14 @@ public class AcceptMsgThread extends Thread implements AnalyticDataUtils.OnAnaly
         byte[] content = mEncodeV1.buildSendContent();
         try {
             outputStream.write(content);
+            isSendSuccess = true;
             if (mTcpListener != null) {
                 mTcpListener.connect(this);
             }
         } catch (IOException e) {
             if (mTcpListener != null) {
                 Log.e(TAG, "sendStartMessage: 断开2");
+                isSendSuccess = false;
                 mTcpListener.disconnect(e, this);
             }
         }
@@ -111,7 +114,9 @@ public class AcceptMsgThread extends Thread implements AnalyticDataUtils.OnAnaly
     @Override
     public void run() {
         super.run();
+        mAnalyticDataUtils.startNetSpeedCalculate();
         readMessage();
+        mAnalyticDataUtils.stop();
     }
 
     // TODO: 2018/6/14 去读取数据
@@ -135,9 +140,7 @@ public class AcceptMsgThread extends Thread implements AnalyticDataUtils.OnAnaly
                     Log.e(TAG, "接收到的数据格式不对...");
                     continue;
                 }
-                long currentTime = System.currentTimeMillis();
                 ReceiveData receiveData = mAnalyticDataUtils.synchAnalyticData(InputStream, receiveHeader);
-                Log.d(TAG, "read a frame spend time = " + (System.currentTimeMillis() - currentTime) + "ms");
                 if (receiveData == null || receiveData.getBuff() == null) {
                     continue;
                 }
@@ -148,6 +151,7 @@ public class AcceptMsgThread extends Thread implements AnalyticDataUtils.OnAnaly
             if (mTcpListener != null) {
                 Log.e(TAG, "readMessage: = " + e.toString());
                 mTcpListener.disconnect(e, this);
+                isSendSuccess = false;
             }
         } finally {
             startFlag = false;
@@ -172,6 +176,7 @@ public class AcceptMsgThread extends Thread implements AnalyticDataUtils.OnAnaly
     // TODO: 2018/6/14 中止线程
     public void shutdown() {
         startFlag = false;
+        if (mAnalyticDataUtils != null) mAnalyticDataUtils.stop();
         //中断非阻塞状态线程
         this.interrupt();
     }
@@ -187,9 +192,16 @@ public class AcceptMsgThread extends Thread implements AnalyticDataUtils.OnAnaly
         mDecoderUtils.isCategory(data.getBuff());
     }
 
+    @Override
+    public void netSpeed(String msg) {
+        if (mTcpListener != null && isSendSuccess) mTcpListener.netspeed(msg);
+    }
+
     public interface OnTcpChangeListener {
         void disconnect(Exception e, AcceptMsgThread thread);
 
         void connect(AcceptMsgThread thread);
+
+        void netspeed(String netSpeed);
     }
 }

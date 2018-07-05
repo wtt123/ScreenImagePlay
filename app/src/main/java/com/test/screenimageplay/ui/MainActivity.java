@@ -91,7 +91,6 @@ public class MainActivity extends BaseActivity {
     };
 
 
-
     @Override
     protected int getLayoutId() {
         return R.layout.activity_main;
@@ -129,6 +128,7 @@ public class MainActivity extends BaseActivity {
             }
         });
     }
+
     @Override
     protected void initData() {
         RxPermissions rxPermissions = new RxPermissions(this);
@@ -212,6 +212,12 @@ public class MainActivity extends BaseActivity {
     class MyOnServerStateChangeListener extends OnServerStateChangeListener {
 
         @Override
+        public void acceptH264TcpNetSpeed(String netSpeed) {
+            super.acceptH264TcpNetSpeed(netSpeed);
+            Log.e(TAG, "netSpeed = " + netSpeed);
+        }
+
+        @Override
         public void acceptH264TcpConnect(int currentSize) {
             //接收到客户端的连接...
             Log.e(TAG, " acceptH264TcpConnect 接收到客户端的连接...");
@@ -253,8 +259,8 @@ public class MainActivity extends BaseActivity {
     private void changeSurfaceState(int width, int height) {
         runOnUiThread(() -> {
             RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) sfView.getLayoutParams();
-            int w= DensityUtil.dip2px(mContext,width);
-            int h=DensityUtil.dip2px(mContext,height);
+            int w = DensityUtil.dip2px(mContext, width);
+            int h = DensityUtil.dip2px(mContext, height);
             layoutParams.width = w;
             layoutParams.height = h;
             layoutParams.addRule(RelativeLayout.CENTER_IN_PARENT);
@@ -287,10 +293,10 @@ public class MainActivity extends BaseActivity {
     // TODO: 2018/7/2 ip切换时更新当前ui
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(String state) {
-        Log.e("wtt", "onMessageEvent: "+state );
-      if (!state.equals(currentIP)){
-          updateUI(state);
-      }
+        Log.e("wtt", "onMessageEvent: " + state);
+        if (!state.equals(currentIP)) {
+            updateUI(state);
+        }
     }
 
 

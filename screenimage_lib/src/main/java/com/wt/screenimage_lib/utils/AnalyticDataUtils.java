@@ -8,6 +8,8 @@ import com.wt.screenimage_lib.entity.ReceiveHeader;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * Created by wt on 2018/6/12.
@@ -15,7 +17,9 @@ import java.io.InputStream;
  */
 public class AnalyticDataUtils {
     private OnAnalyticDataListener mListener;
-
+    private volatile int readLength = 0;
+    private Timer timer;
+    private boolean isCalculate = false;
 
     /**
      * 分析头部数据
@@ -59,7 +63,7 @@ public class AnalyticDataUtils {
         data.setHeader(receiveHeader);
         data.setSendBody(sendBody == null ? "" : sendBody.toString());
         data.setBuff(buff);
-       if (mListener != null) mListener.onSuccess(data);
+        if (mListener != null) mListener.onSuccess(data);
     }
 
     // TODO: 2018/7/5 wt 解析头数据
@@ -89,7 +93,7 @@ public class AnalyticDataUtils {
      * @return
      * @throws Exception
      */
-    public static byte[] readByte(InputStream is, int readSize) throws IOException {
+    public byte[] readByte(InputStream is, int readSize) throws IOException {
         byte[] buff = new byte[readSize];
         int len = 0;
         int eachLen = 0;
@@ -97,6 +101,7 @@ public class AnalyticDataUtils {
         while (len < readSize) {
             eachLen = is.read(buff);
             if (eachLen != -1) {
+                if (isCalculate) readLength += eachLen;
                 len += eachLen;
                 baos.write(buff, 0, eachLen);
             } else {
@@ -114,11 +119,38 @@ public class AnalyticDataUtils {
 
 
     public interface OnAnalyticDataListener {
-        void onSuccess(ReceiveData data) ;
+        void onSuccess(ReceiveData data);
+
+        void netSpeed(String msg);
 
     }
 
     public void setOnAnalyticDataListener(OnAnalyticDataListener listener) {
         this.mListener = listener;
+    }
+
+    public void startNetSpeedCalculate() {
+        stop();
+        readLength = 0;
+        isCalculate = true;
+        timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                if (mListener != null) {
+                    mListener.netSpeed((readLength / 1024) + " kb/s");
+                    readLength = 0;
+                }
+            }
+        }, 1000, 1000);
+    }
+
+    public void stop() {
+        isCalculate = false;
+        try {
+            if (timer != null) timer.cancel();
+        } catch (Exception e) {
+
+        }
     }
 }

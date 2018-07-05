@@ -200,6 +200,15 @@ public class TcpServer implements AcceptMsgThread.OnTcpChangeListener {
         connectListener();
     }
 
+    @Override
+    public void netspeed(String netSpeed) {
+        ArrayList<OnServerStateChangeListener> mList = ScreenImageController.getInstance().mList;
+        if (mList == null) return;
+        for (OnServerStateChangeListener listener : mList) {
+            listener.acceptH264TcpNetSpeed(netSpeed);
+        }
+    }
+
 
     public void connectListener() {
         ArrayList<OnServerStateChangeListener> mList = ScreenImageController.getInstance().mList;
