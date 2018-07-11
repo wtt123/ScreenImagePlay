@@ -28,7 +28,7 @@ import java.util.List;
  */
 
 public class TcpServer implements AcceptMsgThread.OnTcpChangeListener {
-    private static final String TAG = "TcpServer";
+    private static final String TAG = "wtt";
     private ServerSocket serverSocket;
     private boolean isAccept = true;
     private EncodeV1 mEncodeV1;

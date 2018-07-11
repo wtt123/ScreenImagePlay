@@ -1,4 +1,4 @@
-package com.test.screenimageplay.utils;
+package com.wt.screenimage_lib.utils;
 
 import android.content.Context;
 import android.net.ConnectivityManager;
@@ -19,7 +19,7 @@ import java.util.Enumeration;
  * Created by wt on 2018/6/15.
  * 获取IP工具类
  */
-public class AboutIpUtils {
+public class AboutNetUtils {
     public static String getIPAddress(Context context) {
         NetworkInfo info = ((ConnectivityManager) context
                 .getSystemService(Context.CONNECTIVITY_SERVICE)).getActiveNetworkInfo();
@@ -89,5 +89,24 @@ public class AboutIpUtils {
             }
         }
         return info != null ? info.getSSID() : null;
+    }
+
+    public  static boolean isNetWorkConnected(Context context) {
+        // TODO Auto-generated method stub
+        try{
+            ConnectivityManager connectivity = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
+            if(connectivity != null){
+                NetworkInfo netWorkinfo = connectivity.getActiveNetworkInfo();
+                if(netWorkinfo != null && netWorkinfo.isAvailable()){
+                    if(netWorkinfo.getState() == NetworkInfo.State.CONNECTED){
+                        return true;
+                    }
+                }
+            }
+        }catch(Exception e){
+            Log.e("UdpService : ",e.toString());
+            return false;
+        }
+        return false;
     }
 }

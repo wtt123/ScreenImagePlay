@@ -140,7 +140,8 @@ public class AcceptMsgThread extends Thread implements AnalyticDataUtils.OnAnaly
                     Log.e(TAG, "接收到的数据格式不对...");
                     continue;
                 }
-                ReceiveData receiveData = mAnalyticDataUtils.synchAnalyticData(InputStream, receiveHeader);
+                // TODO: 2018/6/12 根据指令处理相关事务
+                ReceiveData receiveData = mAnalyticDataUtils.analyticData(InputStream, receiveHeader);
                 if (receiveData == null || receiveData.getBuff() == null) {
                     continue;
                 }
@@ -158,19 +159,7 @@ public class AcceptMsgThread extends Thread implements AnalyticDataUtils.OnAnaly
         }
     }
 
-    // TODO: 2018/6/12 根据指令处理相关事务
-    private void operation(ReceiveHeader receiveHeader, InputStream InputStream) throws IOException {
-        //主：投屏
-        if (receiveHeader.getMainCmd() == 0xA2) {
-            switch (receiveHeader.getSubCmd()) {
-                //解析音视频播放
-                case ScreenImageApi.RECORD.DATE_PALY:
-                    //解析拆分帧数据
 
-                    break;
-            }
-        }
-    }
 
 
     // TODO: 2018/6/14 中止线程
@@ -180,17 +169,17 @@ public class AcceptMsgThread extends Thread implements AnalyticDataUtils.OnAnaly
         //中断非阻塞状态线程
         this.interrupt();
     }
-
-
-    // TODO: 2018/6/14 从解析成功后回调过来
-    @Override
-    public void onSuccess(ReceiveData data) {
-        if (data == null) {
-            return;
-        }
-        //区分音视频
-        mDecoderUtils.isCategory(data.getBuff());
-    }
+//
+//
+//    // TODO: 2018/6/14 从解析成功后回调过来
+//    @Override
+//    public void onSuccess(ReceiveData data) {
+//        if (data == null) {
+//            return;
+//        }
+//        //区分音视频
+//        mDecoderUtils.isCategory(data.getBuff());
+//    }
 
     @Override
     public void netSpeed(String msg) {

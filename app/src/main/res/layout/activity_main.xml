@@ -7,6 +7,7 @@
     android:background="#000"
     tools:context=".ui.MainActivity">
 
+
     <SurfaceView
         android:id="@+id/sf_view"
         android:layout_width="wrap_content"
@@ -61,4 +62,11 @@
     </LinearLayout>
 
 
+    <TextView
+        android:id="@+id/tv_net_speed"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="200px"
+        android:layout_marginLeft="100px"
+        android:textColor="#000"/>
 </RelativeLayout>

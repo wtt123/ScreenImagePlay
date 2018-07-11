@@ -55,7 +55,7 @@ public class AnalyticDataUtils {
         if (receiveHeader.getStringBodylength() != 0) {
             sendBody = readByte(is, receiveHeader.getStringBodylength());
         }
-
+         //音视频长度
         if (receiveHeader.getBuffSize() != 0) {
             buff = readByte(is, receiveHeader.getBuffSize());
         }
@@ -63,7 +63,7 @@ public class AnalyticDataUtils {
         data.setHeader(receiveHeader);
         data.setSendBody(sendBody == null ? "" : new String(sendBody));
         data.setBuff(buff);
-        if (mListener != null) mListener.onSuccess(data);
+//        if (mListener != null) mListener.onSuccess(data);
         return data;
     }
 //
@@ -141,7 +141,7 @@ public class AnalyticDataUtils {
 
 
     public interface OnAnalyticDataListener {
-        void onSuccess(ReceiveData data);
+//        void onSuccess(ReceiveData data);
 
         void netSpeed(String msg);
 

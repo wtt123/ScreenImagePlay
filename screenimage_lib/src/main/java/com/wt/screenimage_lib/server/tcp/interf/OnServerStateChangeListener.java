@@ -27,6 +27,7 @@ public abstract class OnServerStateChangeListener {
     //接到逻辑消息
     public abstract EncodeV1 acceptLogicTcpMsg(ReceiveData data);
 
+    //读数据的时间
     public void acceptH264TcpNetSpeed(String netSpeed) {
 
     }

@@ -27,6 +27,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <service
+            android:name=".server.udp.UdpService"/>
         <meta-data
             android:name="android.max_aspect"
             android:value="ratio_float" />
