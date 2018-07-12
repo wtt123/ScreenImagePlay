@@ -51,11 +51,10 @@ import java.util.concurrent.Executors;
  */
 public class UdpService extends Service implements OnUdpConnectListener{
     private Handler mHandler;
-    private ServerSocket server;
+//    private ServerSocket server;
     //服务端的ip
     private String ip = null;
-    private static int BROADCAST_PORT = 1234;
-    private static int PORT = 11111;
+    private static int BROADCAST_PORT = 15000;
     private static String BROADCAST_IP = "224.0.0.1";
     InetAddress inetAddress = null;
     //发送广播端的socket
@@ -85,12 +84,18 @@ public class UdpService extends Service implements OnUdpConnectListener{
         context=this;
         mHandler = new Handler();
         weakHandler = new WeakHandler();
-        try {
-            server = new ServerSocket(PORT);
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+        addStreamListener();
+//        try {
+//            server = new ServerSocket(PORT);
+//        } catch (IOException e) {
+//            // TODO Auto-generated catch block
+//            e.printStackTrace();
+//        }
+    }
+
+    private void addStreamListener() {
+        mListener = new MyOnServerStateChangeListener();
+        ScreenImageController.getInstance().addOnAcceptTcpStateChangeListener(mListener);
     }
 
     //2
@@ -111,7 +116,7 @@ public class UdpService extends Service implements OnUdpConnectListener{
             multicastSocket = new MulticastSocket(BROADCAST_PORT);//多点广播套接字
             multicastSocket.setTimeToLive(1);
             multicastSocket.joinGroup(inetAddress);
-
+            Log.e("UdpService","start multcast socket");
         } catch (UnknownHostException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -123,31 +128,31 @@ public class UdpService extends Service implements OnUdpConnectListener{
             new Thread() {
                 @Override
                 public void run() {
-                    try {
+//                    try {
                         //建立一个线程池，每次收到一个客户端，新开一个线程
                         mExecutorService = Executors.newCachedThreadPool();
-                        Socket client = null;
-                        mList.clear();
-                        while (isConnected) {
-                            client = server.accept();
-                            //把客户端放入客户端集合中
-                            if (!connectOrNot(client)) {
-                                mList.add(client);
-                                Log.i("UDPService", "当前连接数：" + mList.size());
-                            }
-                            if (!isStart) {
-                                isStart=true;
-                                startServer();
-                            }
-//                            mExecutorService.execute(new Service(client));
-                        }
+//                        Socket client = null;
+//                        mList.clear();
+//                        while (isConnected) {
+//                            client = server.accept();
+//                            //把客户端放入客户端集合中
+//                            if (!connectOrNot(client)) {
+//                                mList.add(client);
+//                                Log.i("UDPService", "当前连接数：" + mList.size());
+//                            }
+//                            if (!isStart) {
+//                                isStart=true;
+//                                startServer();
+//                            }
+////                            mExecutorService.execute(new Service(client));
+//                        }
 
 //                        //释放客户端
 //                        for (int i = 0; i < mList.size(); i++)
 //                            mList.get(i).close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+//                    } catch (IOException e) {
+//                        e.printStackTrace();
+//                    }
                 }
             }.start();
         }
@@ -331,12 +336,7 @@ public class UdpService extends Service implements OnUdpConnectListener{
     }
 
 
-    private void startServer() {
-        ScreenImageController.getInstance()
-                .init(getApplication()).startServer();
-        mListener = new MyOnServerStateChangeListener();
-        ScreenImageController.getInstance().addOnAcceptTcpStateChangeListener(mListener);
-    }
+
 
     class MyOnServerStateChangeListener extends OnServerStateChangeListener {
         InfoDate infoDate=new InfoDate();
