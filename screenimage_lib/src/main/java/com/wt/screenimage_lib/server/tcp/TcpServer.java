@@ -39,6 +39,7 @@ public class TcpServer implements AcceptMsgThread.OnTcpChangeListener {
     private AnalyticDataUtils mAnalyticUtils;
 
     public TcpServer() {
+        Log.e("123", "TcpServer: zzz" );
         acceptMsgThreadList = new ArrayList<>();
         mAnalyticUtils = new AnalyticDataUtils();
         init();
@@ -80,14 +81,15 @@ public class TcpServer implements AcceptMsgThread.OnTcpChangeListener {
                             logicThread.start();
                         } else if (receiveHeader.getMainCmd() == ScreenImageApi.RECORD.MAIN_CMD) {//投屏请求
                             //开启接收H264和Aac线程
-                            AcceptMsgThread acceptMsgThread = new AcceptMsgThread(socket, mEncodeV1, mListener, TcpServer.this);
+                            AcceptMsgThread acceptMsgThread = new AcceptMsgThread(socket,
+                                    mEncodeV1, mListener, TcpServer.this);
                             acceptMsgThread.start();
                             //把线程添加到集合中去
                             acceptMsgThreadList.add(acceptMsgThread);
-                            Log.e("run: ", "wtt" + acceptMsgThreadList.size());
                             if (acceptMsgThreadList.size() > 1) {
                                 continue;
                             }
+                            Log.e("wtt: ", "wtt" + acceptMsgThreadList.size());
                             //默认先发送成功标识给第一个客户端
                             acceptMsgThreadList.get(0).sendStartMessage();
                             //把第一个投屏的设备对象记录下来

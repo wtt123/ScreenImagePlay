@@ -9,6 +9,8 @@ import android.os.Build;
 import android.text.TextUtils;
 import android.util.Log;
 
+import com.wt.screenimage_lib.constant.Constants;
+
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
@@ -99,6 +101,7 @@ public class AboutNetUtils {
                 NetworkInfo netWorkinfo = connectivity.getActiveNetworkInfo();
                 if(netWorkinfo != null && netWorkinfo.isAvailable()){
                     if(netWorkinfo.getState() == NetworkInfo.State.CONNECTED){
+                        Constants.UDPCONNECT=true;
                         return true;
                     }
                 }

@@ -7,5 +7,6 @@ public class Constants {
     public static final String TAG = "wt";
     public static String IP = "ip";
     public static int TCPPORT=11111;
+    public static boolean UDPCONNECT=false;
 }
  

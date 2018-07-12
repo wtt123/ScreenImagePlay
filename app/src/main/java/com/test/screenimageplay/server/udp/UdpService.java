@@ -14,8 +14,10 @@ import android.support.annotation.Nullable;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.test.screenimageplay.MyApplication;
 import com.wt.screenimage_lib.ScreenImageApi;
 import com.wt.screenimage_lib.ScreenImageController;
+import com.wt.screenimage_lib.constant.Constants;
 import com.wt.screenimage_lib.entity.InfoDate;
 import com.wt.screenimage_lib.entity.ReceiveData;
 import com.wt.screenimage_lib.server.tcp.EncodeV1;
@@ -55,14 +57,14 @@ public class UdpService extends Service implements OnUdpConnectListener{
     //服务端的ip
     private String ip = null;
     private static int BROADCAST_PORT = 1234;
-    private static int PORT = 11111;
+    private static int PORT = 4444;
     private static String BROADCAST_IP = "224.0.0.1";
     InetAddress inetAddress = null;
     //发送广播端的socket
     MulticastSocket multicastSocket = null;
     private ExecutorService mExecutorService = null;//thread pool
     private List<Socket> mList = new ArrayList<Socket>();
-    private boolean isConnected = false;
+//    private boolean isConnected = false;
     private ConnectivityManager connectivity;
     private NetworkInfo netWorkinfo;
     private Context context;
@@ -119,7 +121,14 @@ public class UdpService extends Service implements OnUdpConnectListener{
         }
         if (ip != null) {
             //开始广播
-            new UDPBoardcastThread(context,ip, inetAddress,multicastSocket, BROADCAST_PORT,weakHandler,this);
+            new UDPBoardcastThread(context,ip, inetAddress,multicastSocket,
+                    BROADCAST_PORT,weakHandler,this);
+            MyApplication.mHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    startServer();
+                }
+            });
             new Thread() {
                 @Override
                 public void run() {
@@ -128,24 +137,30 @@ public class UdpService extends Service implements OnUdpConnectListener{
                         mExecutorService = Executors.newCachedThreadPool();
                         Socket client = null;
                         mList.clear();
-                        while (isConnected) {
+                        while (Constants.UDPCONNECT) {
                             client = server.accept();
-                            //把客户端放入客户端集合中
+                           // 把客户端放入客户端集合中
                             if (!connectOrNot(client)) {
                                 mList.add(client);
-                                Log.i("UDPService", "当前连接数：" + mList.size());
+                                Log.i("123", "当前连接数：" + mList.size());
                             }
-                            if (!isStart) {
-                                isStart=true;
-                                startServer();
-                            }
+//                            weakHandler.post(new Runnable() {
+//                                @Override
+//                                public void run() {
+//                                    if (!isStart) {
+//                                        isStart=true;
+//                                        startServer();
+//                                    }
+//                                }
+//                            });
+
 //                            mExecutorService.execute(new Service(client));
                         }
 
 //                        //释放客户端
 //                        for (int i = 0; i < mList.size(); i++)
 //                            mList.get(i).close();
-                    } catch (IOException e) {
+                    } catch (Exception e) {
                         e.printStackTrace();
                     }
                 }
@@ -161,68 +176,14 @@ public class UdpService extends Service implements OnUdpConnectListener{
     @Override
     public void udpDisConnec() {
         // TODO: 2018/7/11 连接失败
-        isConnected=false;
+        Constants.UDPCONNECT=false;
         Log.e("123", "udpDisConnec: 连接失败");
         initData();
 
     }
 
 
-    //客户端线程，组成线程池
-//    class Service implements Runnable {
-//        private Socket socket;
-//        private BufferedReader in = null;
-//        private String msg = "";
-//
-//        public Service(Socket socket) {
-//            this.socket = socket;
-//        }
-//
-//        @Override
-//        public void run() {
-//            try {
-//                in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-//                //等待接收客户端发送的数据
-//                while (isConnected) {
-//
-//                    if ((msg = in.readLine()) != null && isConnected) {
-//
-//                        // 创建一个Instrumentation对象，调用inst对象的按键模拟方法
-//                        Instrumentation inst = new Instrumentation();
-//                        try {
-//                            int codeKey = Integer.parseInt(msg);
-//                            //codeKey对应键值参照KeyCodeTable.txt文件，在客户端中实现
-//                            inst.sendKeyDownUpSync(codeKey);
-//
-//                            //发送回执
-//                            this.sendmsg(socket);
-//                        } catch (Exception ex) {
-//                            ex.printStackTrace();
-//                        }
-//
-//                    }
-//                }
-//            } catch (Exception e) {
-//                e.printStackTrace();
-//            }
-//        }
-//
-//        private void sendmsg(Socket socket2) {
-//            // TODO Auto-generated method stub
-//            PrintWriter pout = null;
-//
-//            try {
-//                pout = new PrintWriter(new BufferedWriter(
-//                        new OutputStreamWriter(socket2.getOutputStream())), true);
-//                pout.println("I am ok");
-//            } catch (IOException e) {
-//                // TODO Auto-generated catch block
-//                e.printStackTrace();
-//            }
-//
-//        }
-//
-//    }
+
 
     /**
      * 1.获取本机正在使用网络IP地址（wifi、有线）
@@ -230,7 +191,8 @@ public class UdpService extends Service implements OnUdpConnectListener{
     public String getAddressIP() {
         //检查网络是否连接
         while (!AboutNetUtils.isNetWorkConnected(context)) {
-            isConnected = true;
+            Log.e("123", "getAddressIP: wife" );
+            Constants.UDPCONNECT = true;
         }
         ip = getLocalIpAddress();
         return ip;
@@ -258,25 +220,7 @@ public class UdpService extends Service implements OnUdpConnectListener{
         return null;
     }
 
-//    private boolean isNetWorkConnected() {
-//        // TODO Auto-generated method stub
-//        try{
-//            connectivity = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-//            if(connectivity != null){
-//                netWorkinfo = connectivity.getActiveNetworkInfo();
-//                if(netWorkinfo != null && netWorkinfo.isAvailable()){
-//                    if(netWorkinfo.getState() == NetworkInfo.State.CONNECTED){
-//                        isConnected = true;
-//                        return true;
-//                    }
-//                }
-//            }
-//        }catch(Exception e){
-//            Log.e("UdpService : ",e.toString());
-//            return false;
-//        }
-//        return false;
-//    }
+
 
     //若已添加，则返回true
     private boolean connectOrNot(Socket socket) {
@@ -291,22 +235,6 @@ public class UdpService extends Service implements OnUdpConnectListener{
         return false;
     }
 
-    @SuppressLint("HandlerLeak")
-    private Handler mHandler01 = new Handler() {
-
-        @Override
-        public void handleMessage(Message msg) {
-            // TODO Auto-generated method stub
-            super.handleMessage(msg);
-            switch (msg.what) {
-                //连接失败
-                case 0x0001:
-                    initData();
-                    break;
-            }
-        }
-
-    };
 
     private class ToastRunnable implements Runnable {
         String mText;
@@ -363,7 +291,7 @@ public class UdpService extends Service implements OnUdpConnectListener{
                     EventBus.getDefault().post(infoDate);
                 }
             });
-//            Log.e(TAG, " acceptH264TcpConnect 接收到客户端的连接...");
+            Log.e("123", " acceptH264TcpConnect 接收到客户端的连接...");
 //            Message msg = new Message();
 //            msg.what = 1;
 //            mHandler.sendMessage(msg);
@@ -375,7 +303,7 @@ public class UdpService extends Service implements OnUdpConnectListener{
             infoDate.setFromState(3);
             infoDate.setCurrentSize(currentSize);
             EventBus.getDefault().post(infoDate);
-//            Log.e(TAG, " acceptH264TcpDisConnect 客户端的连接断开..." + e.toString());
+            Log.e("123", " acceptH264TcpDisConnect 客户端的连接断开..." + e.toString());
 //            if (currentSize < 1) {
 //                Message msg = new Message();
 //                msg.what = 2;

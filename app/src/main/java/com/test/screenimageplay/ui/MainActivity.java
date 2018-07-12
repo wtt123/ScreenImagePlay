@@ -119,7 +119,7 @@ public class MainActivity extends BaseActivity {
             @Override
             public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
                 //Surface的大小发生改变时调用。
-                Log.e(TAG, "surface change width = " + width + " height = " + height);
+//                Log.e(TAG, "surface change width = " + width + " height = " + height);
             }
 
             @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)

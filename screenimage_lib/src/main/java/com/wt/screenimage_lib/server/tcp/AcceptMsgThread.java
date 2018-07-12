@@ -33,7 +33,7 @@ public class AcceptMsgThread extends Thread implements AnalyticDataUtils.OnAnaly
     private AnalyticDataUtils mAnalyticDataUtils;
     private boolean isSendSuccess = false;  //允许投屏
     //当前投屏线程
-    private String TAG = "AcceptMsgThread";
+    private String TAG = "wtt";
 
     public AcceptMsgThread(Socket socket, EncodeV1 encodeV1, OnAcceptBuffListener
             listener, OnTcpChangeListener tcpListener) {
