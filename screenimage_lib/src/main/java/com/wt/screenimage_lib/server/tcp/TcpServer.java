@@ -84,7 +84,7 @@ public class TcpServer implements AcceptMsgThread.OnTcpChangeListener {
                             acceptMsgThread.start();
                             //把线程添加到集合中去
                             acceptMsgThreadList.add(acceptMsgThread);
-                            Log.e("run: ", "wtt" + acceptMsgThreadList.size());
+                            Log.e(TAG, "wtt" + acceptMsgThreadList.size());
                             if (acceptMsgThreadList.size() > 1) {
                                 continue;
                             }
@@ -177,13 +177,13 @@ public class TcpServer implements AcceptMsgThread.OnTcpChangeListener {
     public void disconnect(Exception e, AcceptMsgThread thread) {
         boolean remove = acceptMsgThreadList.remove(thread);
         disconnectListener(e);
-        Log.e("wtt", "移除成功" + remove + "acceptTcpDisConnect: 个数" + acceptMsgThreadList.size());
+        Log.e(TAG, "移除成功" + remove + "acceptTcpDisConnect: 个数" + acceptMsgThreadList.size());
         if (acceptMsgThreadList == null || acceptMsgThreadList.size() == 0) {
             return;
         }
         //如果停止的不是正在投屏的线程，就不再去走下面的方法
         if (thread != acceptMsgThreadList.get(0) && thread != acceptMsgThread1) {
-            Log.e("wt", "setacceptTcpDisConnect: zzz");
+            Log.e(TAG, "setacceptTcpDisConnect: zzz");
             return;
         }
         //开启第下一个投屏

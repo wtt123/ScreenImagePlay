@@ -57,7 +57,7 @@ public class AcceptMsgThread extends Thread implements AnalyticDataUtils.OnAnaly
                 spsPpsFrame.setType(Frame.SPSPPS);
                 spsPpsFrame.setSps(sps);
                 spsPpsFrame.setPps(pps);
-                Log.e("AcceptH264MsgThread", "sps pps ...");
+                Log.d("AcceptH264MsgThread", "sps pps ...");
                 AcceptMsgThread.this.listener.acceptBuff(spsPpsFrame);
             }
 
@@ -156,6 +156,11 @@ public class AcceptMsgThread extends Thread implements AnalyticDataUtils.OnAnaly
             }
         } finally {
             startFlag = false;
+            try {
+                socket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 

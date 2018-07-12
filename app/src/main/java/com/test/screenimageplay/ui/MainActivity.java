@@ -72,7 +72,7 @@ public class MainActivity extends BaseActivity {
     private SurfaceHolder mSurfaceHolder;
     private FileOutputStream fos;
 
-    private String TAG = "wtt";
+    private String TAG = "MainActivity";
     private Context mContext;
     private NetWorkStateReceiver netWorkStateReceiver;
     private String currentIP;
@@ -224,7 +224,7 @@ public class MainActivity extends BaseActivity {
             runOnUiThread(()->{
                 tvNetSpeed.setText("当前速度："+netSpeed);
             });
-            Log.e(TAG, "netSpeed = " + netSpeed);
+            Log.i(TAG, "netSpeed = " + netSpeed);
         }
 
         @Override
@@ -298,7 +298,6 @@ public class MainActivity extends BaseActivity {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(InfoDate infoDate) {
-        Log.e("wtt", "onMessageEvent: " + infoDate.getFromState());
         if (infoDate == null) {
             return;
         }

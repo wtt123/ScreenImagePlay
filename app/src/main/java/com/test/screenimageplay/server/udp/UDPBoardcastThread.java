@@ -49,7 +49,7 @@ public class UDPBoardcastThread extends Thread {
             try {
                 multicastSocket.send(dataPacket);
                 Thread.sleep(5000);
-                Log.e("123:","再次发送ip地址广播");
+                Log.i("UdpBoaardcastThread:","再次发送ip地址广播");
             } catch (Exception e) {
                 e.printStackTrace();
             }
