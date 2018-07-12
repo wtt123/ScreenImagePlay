@@ -35,7 +35,7 @@ public class NormalPlayQueue {
 
     private ScanThread mScanThread;
     private volatile boolean mScanFlag;
-    private boolean isDebug = true;
+    private boolean isDebug = false;
 
     public NormalPlayQueue() {
         mScanFlag = true;
@@ -196,6 +196,6 @@ public class NormalPlayQueue {
     }
 
     private void showLog(String msg) {
-        if (isDebug) Log.e("NormalSendQueue", "" + msg);
+        if (isDebug) Log.i("NormalSendQueue", "" + msg);
     }
 }

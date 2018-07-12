@@ -54,7 +54,7 @@ import java.io.IOException;
 import butterknife.BindView;
 
 public class MainActivity extends BaseActivity {
-//
+    //
 //    @BindView(R.id.iv_code)
 //    ImageView ivCode;
     @BindView(R.id.sf_view)
@@ -72,11 +72,11 @@ public class MainActivity extends BaseActivity {
     private SurfaceHolder mSurfaceHolder;
     private FileOutputStream fos;
 
-    private String TAG = "wtt";
+    private String TAG = "MainActivity";
     private Context mContext;
     private NetWorkStateReceiver netWorkStateReceiver;
     private String currentIP;
-        private MyOnServerStateChangeListener mListener;
+    private MyOnServerStateChangeListener mListener;
     private PowerManager.WakeLock mWakeLock;
     private Handler mHandler = new Handler() {
         @Override
@@ -222,10 +222,10 @@ public class MainActivity extends BaseActivity {
         @Override
         public void acceptH264TcpNetSpeed(String netSpeed) {
             super.acceptH264TcpNetSpeed(netSpeed);
-            runOnUiThread(()->{
-                tvNetSpeed.setText("当前速度："+netSpeed);
+            runOnUiThread(() -> {
+                tvNetSpeed.setText("当前速度：" + netSpeed);
             });
-//            Log.e(TAG, "netSpeed = " + netSpeed);
+            Log.i(TAG, "netSpeed = " + netSpeed);
         }
 
         @Override
@@ -246,7 +246,7 @@ public class MainActivity extends BaseActivity {
                 msg.what = 2;
                 mHandler.sendMessage(msg);
             }
-            runOnUiThread(()->{
+            runOnUiThread(() -> {
                 tvNetSpeed.setText("");
             });
         }
@@ -295,54 +295,54 @@ public class MainActivity extends BaseActivity {
     public void onMessageEvent(String state) {
         Log.e("wtt", "onMessageEvent: " + state);
         updateUI(state);
-    }
+        }
 
 
-    // TODO: 2018/7/4 改变sf的大小
-    private void changeSurfaceState(int width, int height) {
-        runOnUiThread(() -> {
-            RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) sfView.getLayoutParams();
-            int w = DensityUtil.dip2px(mContext, width);
-            int h = DensityUtil.dip2px(mContext, height);
-            layoutParams.width = w;
-            layoutParams.height = h;
-            layoutParams.addRule(RelativeLayout.CENTER_IN_PARENT);
-            sfView.setLayoutParams(layoutParams);
-            SupportMultipleScreensUtil.scale(sfView);
-        });
-    }
+        // TODO: 2018/7/4 改变sf的大小
+        private void changeSurfaceState ( int width, int height){
+            runOnUiThread(() -> {
+                RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) sfView.getLayoutParams();
+                int w = DensityUtil.dip2px(mContext, width);
+                int h = DensityUtil.dip2px(mContext, height);
+                layoutParams.width = w;
+                layoutParams.height = h;
+                layoutParams.addRule(RelativeLayout.CENTER_IN_PARENT);
+                sfView.setLayoutParams(layoutParams);
+                SupportMultipleScreensUtil.scale(sfView);
+            });
+        }
 
-    private void acquireWakeLock() {
-        if (mWakeLock == null) {
-            PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
-            mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP,
-                    this.getClass().getCanonicalName());
-            mWakeLock.acquire();
+        private void acquireWakeLock () {
+            if (mWakeLock == null) {
+                PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+                mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP,
+                        this.getClass().getCanonicalName());
+                mWakeLock.acquire();
+            }
+        }
+
+
+        private void releaseWakeLock () {
+            if (mWakeLock != null) {
+                mWakeLock.release();
+                mWakeLock = null;
+            }
+        }
+
+        @Override
+        protected void onDestroy () {
+            unregisterReceiver(netWorkStateReceiver);
+            mHandler.removeCallbacksAndMessages(null);
+            EventBus.getDefault().unregister(this);
+            ScreenImageController.getInstance().stopServer();
+            releaseWakeLock();
+            super.onDestroy();
+        }
+
+        @Override
+        public void finish () {
+            super.finish();
+            ScreenImageController.getInstance().removeOnAcceptTcpStateChangeListener(mListener);
+            if (mController != null) mController.stop();
         }
     }
-
-
-    private void releaseWakeLock() {
-        if (mWakeLock != null) {
-            mWakeLock.release();
-            mWakeLock = null;
-        }
-    }
-
-    @Override
-    protected void onDestroy() {
-        unregisterReceiver(netWorkStateReceiver);
-        mHandler.removeCallbacksAndMessages(null);
-        EventBus.getDefault().unregister(this);
-        ScreenImageController.getInstance().stopServer();
-        releaseWakeLock();
-        super.onDestroy();
-    }
-
-    @Override
-    public void finish() {
-        super.finish();
-        ScreenImageController.getInstance().removeOnAcceptTcpStateChangeListener(mListener);
-        if (mController != null) mController.stop();
-    }
-}
