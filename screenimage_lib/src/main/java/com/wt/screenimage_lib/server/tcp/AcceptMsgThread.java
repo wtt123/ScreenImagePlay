@@ -93,7 +93,7 @@ public class AcceptMsgThread extends Thread implements AnalyticDataUtils.OnAnaly
 
     // TODO: 2018/6/14 向客户端回传初始化成功标识 @param size 当前线程集合里的投屏设备数量
     public void sendStartMessage() {
-        Log.d(TAG, "sendStartMessage: 发送成功标识");
+        Log.d("wtt", "sendStartMessage: 发送成功标识");
         //告诉客户端我已经初始化成功
         byte[] content = mEncodeV1.buildSendContent();
         try {
@@ -103,6 +103,7 @@ public class AcceptMsgThread extends Thread implements AnalyticDataUtils.OnAnaly
                 mTcpListener.connect(this);
             }
         } catch (IOException e) {
+            Log.e("wtt", "sendStartMessage: zzz"+e.getMessage() );
             if (mTcpListener != null) {
                 Log.e(TAG, "sendStartMessage: 断开2");
                 isSendSuccess = false;
@@ -149,8 +150,9 @@ public class AcceptMsgThread extends Thread implements AnalyticDataUtils.OnAnaly
                 mDecoderUtils.isCategory(receiveData.getBuff());
             }
         } catch (Exception e) {
+            Log.e("wtt", "sendStartMessage: zzz"+e.getMessage() );
             if (mTcpListener != null) {
-                Log.e(TAG, "readMessage: = " + e.toString());
+                Log.e(TAG, "断开1 readMessage: = " + e.toString());
                 mTcpListener.disconnect(e, this);
                 isSendSuccess = false;
             }

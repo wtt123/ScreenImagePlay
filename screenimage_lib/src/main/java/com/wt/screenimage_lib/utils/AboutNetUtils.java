@@ -101,7 +101,6 @@ public class AboutNetUtils {
                 NetworkInfo netWorkinfo = connectivity.getActiveNetworkInfo();
                 if(netWorkinfo != null && netWorkinfo.isAvailable()){
                     if(netWorkinfo.getState() == NetworkInfo.State.CONNECTED){
-                        Constants.UDPCONNECT=true;
                         return true;
                     }
                 }

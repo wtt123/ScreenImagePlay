@@ -9,36 +9,23 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Handler;
 import android.os.IBinder;
-import android.os.Message;
+
 import android.support.annotation.Nullable;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.test.screenimageplay.MyApplication;
-import com.wt.screenimage_lib.ScreenImageApi;
-import com.wt.screenimage_lib.ScreenImageController;
+
 import com.wt.screenimage_lib.constant.Constants;
-import com.wt.screenimage_lib.entity.InfoDate;
-import com.wt.screenimage_lib.entity.ReceiveData;
-import com.wt.screenimage_lib.server.tcp.EncodeV1;
-import com.wt.screenimage_lib.server.tcp.interf.OnServerStateChangeListener;
+
 import com.test.screenimageplay.server.udp.interf.OnUdpConnectListener;
 import com.wt.screenimage_lib.utils.AboutNetUtils;
 import com.wt.screenimage_lib.utils.WeakHandler;
 
-import org.greenrobot.eventbus.EventBus;
-
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
-import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.net.NetworkInterface;
-import java.net.ServerSocket;
+
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
@@ -46,32 +33,22 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+
 
 /**
  * Created by wt on 2018/7/11.
  */
-public class UdpService extends Service implements OnUdpConnectListener{
+public class UdpService extends Service implements OnUdpConnectListener {
     private Handler mHandler;
-    private ServerSocket server;
     //服务端的ip
     private String ip = null;
-    private static int BROADCAST_PORT = 1234;
-    private static int PORT = 4444;
+    private static int BROADCAST_PORT = 15000;
     private static String BROADCAST_IP = "224.0.0.1";
     InetAddress inetAddress = null;
     //发送广播端的socket
     MulticastSocket multicastSocket = null;
-    private ExecutorService mExecutorService = null;//thread pool
-    private List<Socket> mList = new ArrayList<Socket>();
-//    private boolean isConnected = false;
-    private ConnectivityManager connectivity;
-    private NetworkInfo netWorkinfo;
     private Context context;
     private WeakHandler weakHandler;
-    private boolean isStart=false;
-
-    private MyOnServerStateChangeListener mListener;
 
     @Nullable
     @Override
@@ -79,23 +56,17 @@ public class UdpService extends Service implements OnUdpConnectListener{
         return null;
     }
 
-    //1
+
     @Override
     public void onCreate() {
         // TODO Auto-generated method stub
         super.onCreate();
-        context=this;
+        context = this;
         mHandler = new Handler();
         weakHandler = new WeakHandler();
-        try {
-            server = new ServerSocket(PORT);
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
     }
 
-    //2
+
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         // TODO Auto-generated method stub
@@ -113,7 +84,7 @@ public class UdpService extends Service implements OnUdpConnectListener{
             multicastSocket = new MulticastSocket(BROADCAST_PORT);//多点广播套接字
             multicastSocket.setTimeToLive(1);
             multicastSocket.joinGroup(inetAddress);
-
+            Log.e("UdpService", "start multcast socket");
         } catch (UnknownHostException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -121,52 +92,11 @@ public class UdpService extends Service implements OnUdpConnectListener{
         }
         if (ip != null) {
             //开始广播
-            new UDPBoardcastThread(context,ip, inetAddress,multicastSocket,
-                    BROADCAST_PORT,weakHandler,this);
-            MyApplication.mHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    startServer();
-                }
-            });
-            new Thread() {
-                @Override
-                public void run() {
-                    try {
-                        //建立一个线程池，每次收到一个客户端，新开一个线程
-                        mExecutorService = Executors.newCachedThreadPool();
-                        Socket client = null;
-                        mList.clear();
-                        while (Constants.UDPCONNECT) {
-                            client = server.accept();
-                           // 把客户端放入客户端集合中
-                            if (!connectOrNot(client)) {
-                                mList.add(client);
-                                Log.i("123", "当前连接数：" + mList.size());
-                            }
-//                            weakHandler.post(new Runnable() {
-//                                @Override
-//                                public void run() {
-//                                    if (!isStart) {
-//                                        isStart=true;
-//                                        startServer();
-//                                    }
-//                                }
-//                            });
-
-//                            mExecutorService.execute(new Service(client));
-                        }
-
-//                        //释放客户端
-//                        for (int i = 0; i < mList.size(); i++)
-//                            mList.get(i).close();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-            }.start();
+            new UDPBoardcastThread(context, ip, inetAddress, multicastSocket,
+                    BROADCAST_PORT, weakHandler, this);
         }
     }
+
 
     @Override
     public void udpConnectSuccess() {
@@ -176,13 +106,10 @@ public class UdpService extends Service implements OnUdpConnectListener{
     @Override
     public void udpDisConnec() {
         // TODO: 2018/7/11 连接失败
-        Constants.UDPCONNECT=false;
         Log.e("123", "udpDisConnec: 连接失败");
         initData();
 
     }
-
-
 
 
     /**
@@ -191,13 +118,13 @@ public class UdpService extends Service implements OnUdpConnectListener{
     public String getAddressIP() {
         //检查网络是否连接
         while (!AboutNetUtils.isNetWorkConnected(context)) {
-            Log.e("123", "getAddressIP: wife" );
-            Constants.UDPCONNECT = true;
+            Log.e("123", "getAddressIP: wife");
         }
         ip = getLocalIpAddress();
         return ip;
     }
 
+    // TODO: 2018/7/12 获取本地所有ip地址
     public String getLocalIpAddress() {
         String address = null;
         try {
@@ -221,18 +148,11 @@ public class UdpService extends Service implements OnUdpConnectListener{
     }
 
 
-
-    //若已添加，则返回true
-    private boolean connectOrNot(Socket socket) {
-        int num = mList.size();
-        for (int index = 0; index < num; index++) {
-            Socket mSocket = mList.get(index);
-            if (mSocket.getInetAddress().getHostAddress().
-                    equals(socket.getInetAddress().getHostAddress())) {
-                return true;
-            }
-        }
-        return false;
+    @Override
+    public void onDestroy() {
+        // TODO Auto-generated method stub
+        mHandler.post(new ToastRunnable("UDP Service is unavailable."));
+        super.onDestroy();
     }
 
 
@@ -250,95 +170,4 @@ public class UdpService extends Service implements OnUdpConnectListener{
         }
 
     }
-
-    @Override
-    public void onDestroy() {
-        // TODO Auto-generated method stub
-        mHandler.post(new ToastRunnable("UDP Service is unavailable."));
-        super.onDestroy();
-    }
-
-
-    private void startServer() {
-        ScreenImageController.getInstance()
-                .init(getApplication()).startServer();
-        mListener = new MyOnServerStateChangeListener();
-        ScreenImageController.getInstance().addOnAcceptTcpStateChangeListener(mListener);
-    }
-
-    class MyOnServerStateChangeListener extends OnServerStateChangeListener {
-        InfoDate infoDate=new InfoDate();
-        @Override
-        public void acceptH264TcpNetSpeed(final String netSpeed) {
-            super.acceptH264TcpNetSpeed(netSpeed);
-            weakHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    infoDate.setFromState(1);
-                    infoDate.setNetSpeed(netSpeed);
-                    EventBus.getDefault().post(infoDate);
-                }
-            });
-        }
-
-        @Override
-        public void acceptH264TcpConnect(int currentSize) {
-            //接收到客户端的连接...
-            weakHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    infoDate.setFromState(2);
-                    EventBus.getDefault().post(infoDate);
-                }
-            });
-            Log.e("123", " acceptH264TcpConnect 接收到客户端的连接...");
-//            Message msg = new Message();
-//            msg.what = 1;
-//            mHandler.sendMessage(msg);
-        }
-
-        @Override
-        public void acceptH264TcpDisConnect(Exception e, int currentSize) {
-            //客户端的连接断开...
-            infoDate.setFromState(3);
-            infoDate.setCurrentSize(currentSize);
-            EventBus.getDefault().post(infoDate);
-            Log.e("123", " acceptH264TcpDisConnect 客户端的连接断开..." + e.toString());
-//            if (currentSize < 1) {
-//                Message msg = new Message();
-//                msg.what = 2;
-//                mHandler.sendMessage(msg);
-//            }
-//            runOnUiThread(()->{
-//                tvNetSpeed.setText("");
-//            });
-        }
-
-        @Override
-        public EncodeV1 acceptLogicTcpMsg(ReceiveData data) {
-            //处理收到的消息逻辑,在子线程执行,返回的EnvodeV1的内容会在本次Tcp连接中返回
-            if (data.getHeader().getMainCmd() == ScreenImageApi.LOGIC_REQUEST.MAIN_CMD &&
-                    data.getHeader().getSubCmd() == ScreenImageApi.LOGIC_REQUEST.GET_START_INFO) {
-                //收到初始化信息
-                Log.e("123", "收到初始化屏幕消息,初始化SurfaceView宽度为" + data.getSendBody());
-                String[] split = data.getSendBody().split(",");
-                int width = Integer.parseInt(split[0]);
-                int height = Integer.parseInt(split[1]);
-                infoDate.setFromState(4);
-                infoDate.setWidth(width);
-                infoDate.setHeight(height);
-                EventBus.getDefault().post(infoDate);
-//                changeSurfaceState(width, height);
-                EncodeV1 encodeV1 = new EncodeV1(ScreenImageApi.LOGIC_REPONSE.MAIN_CMD, ScreenImageApi.LOGIC_REPONSE.GET_START_INFO,
-                        "480,800", new byte[0]);
-                return encodeV1;
-            }
-            return null;
-        }
-    }
-
-    public void finish(){
-        ScreenImageController.getInstance().removeOnAcceptTcpStateChangeListener(mListener);
-    }
-
 }

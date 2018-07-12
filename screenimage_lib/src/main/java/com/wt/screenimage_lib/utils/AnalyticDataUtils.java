@@ -63,7 +63,6 @@ public class AnalyticDataUtils {
         data.setHeader(receiveHeader);
         data.setSendBody(sendBody == null ? "" : new String(sendBody));
         data.setBuff(buff);
-//        if (mListener != null) mListener.onSuccess(data);
         return data;
     }
 //
@@ -128,7 +127,6 @@ public class AnalyticDataUtils {
                 baos.write(buff, 0, eachLen);
             } else {
                 baos.close();
-                throw new IOException("AnalyticDataUtils" + "   :tcp have diaconnect...");
             }
             if (len < readSize) {
                 buff = new byte[readSize - len];

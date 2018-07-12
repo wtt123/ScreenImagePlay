@@ -24,10 +24,6 @@ public class NetWorkStateReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         System.out.println("网络状态发生变化");
-        InfoDate infoDate = new InfoDate();
-        infoDate.setFromState(0);
-        infoDate.setNetSpeed("");
-        infoDate.setCurrentSize(0);
         //检测API是不是小于23，因为到了API23之后getNetworkInfo(int networkType)方法被弃用
         if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.LOLLIPOP) {
             //获得ConnectivityManager对象
@@ -37,13 +33,9 @@ public class NetWorkStateReceiver extends BroadcastReceiver {
             // 获取WIFI连接的信息
             NetworkInfo wifiNetworkInfo = connMgr.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
             if (wifiNetworkInfo.isConnected()) {
-                infoDate.setCurrentIP(NetWorkUtils.getIp(context));
-                EventBus.getDefault().post(infoDate);
-//                EventBus.getDefault().post(NetWorkUtils.getIp(context));
+                EventBus.getDefault().post(NetWorkUtils.getIp(context));
             } else if (!wifiNetworkInfo.isConnected()) {
-                infoDate.setCurrentIP("");
-                EventBus.getDefault().post(infoDate);
-//                EventBus.getDefault().post("");
+                EventBus.getDefault().post("");
                 ToastUtils.showShort(context, "请先连接无线网！！");
             }
             return;
@@ -59,13 +51,9 @@ public class NetWorkStateReceiver extends BroadcastReceiver {
             NetworkInfo networkInfo = connMgr.getNetworkInfo(networks[i]);
             if (networkInfo.getType() == ConnectivityManager.TYPE_WIFI) {
                 if (networkInfo.isConnected()) {
-                    infoDate.setCurrentIP(NetWorkUtils.getIp(context));
-                    EventBus.getDefault().post(infoDate);
-//                    EventBus.getDefault().post(NetWorkUtils.getIp(context));
+                    EventBus.getDefault().post(NetWorkUtils.getIp(context));
                 } else if (!networkInfo.isConnected()) {
-//                    EventBus.getDefault().post("");
-                    infoDate.setCurrentIP("");
-                    EventBus.getDefault().post(infoDate);
+                    EventBus.getDefault().post("");
                     ToastUtils.showShort(context, "请先连接无线网！！");
                 }
                 break;

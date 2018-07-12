@@ -22,22 +22,23 @@ public class UDPBoardcastThread extends Thread {
     private int broadcastPort;
     private Context context;
     //发送广播端的socket
-//    private MulticastSocket multicastSocket = null;
     private WeakHandler weakHandler;
     private MulticastSocket multicastSocket;
     private OnUdpConnectListener listener;
+
     public UDPBoardcastThread(Context context, String ip, InetAddress inetAddress,
                               MulticastSocket multicastSocket, int broadcastPort, WeakHandler weakHandler, OnUdpConnectListener listener) {
-        Log.e("123", "UDPBoardcastThread: zzz" );
-        this.context=context;
-        this.ip=ip;
-        this.inetAddress=inetAddress;
-        this.broadcastPort=broadcastPort;
-        this.weakHandler=weakHandler;
-        this.multicastSocket=multicastSocket;
-        this.listener=listener;
+        Log.e("123", "UDPBoardcastThread: zzz");
+        this.context = context;
+        this.ip = ip;
+        this.inetAddress = inetAddress;
+        this.broadcastPort = broadcastPort;
+        this.weakHandler = weakHandler;
+        this.multicastSocket = multicastSocket;
+        this.listener = listener;
         this.start();
     }
+
     @Override
     public void run() {
         DatagramPacket dataPacket = null;

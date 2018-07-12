@@ -28,7 +28,7 @@ import java.util.List;
  */
 
 public class TcpServer implements AcceptMsgThread.OnTcpChangeListener {
-    private static final String TAG = "wtt";
+    private static final String TAG = "TcpServer";
     private ServerSocket serverSocket;
     private boolean isAccept = true;
     private EncodeV1 mEncodeV1;
@@ -82,7 +82,7 @@ public class TcpServer implements AcceptMsgThread.OnTcpChangeListener {
                         } else if (receiveHeader.getMainCmd() == ScreenImageApi.RECORD.MAIN_CMD) {//投屏请求
                             //开启接收H264和Aac线程
                             AcceptMsgThread acceptMsgThread = new AcceptMsgThread(socket,
-                                    mEncodeV1, mListener, TcpServer.this);
+                                    mEncodeV1, mListener, TcpServer.this );
                             acceptMsgThread.start();
                             //把线程添加到集合中去
                             acceptMsgThreadList.add(acceptMsgThread);
@@ -158,7 +158,7 @@ public class TcpServer implements AcceptMsgThread.OnTcpChangeListener {
      */
     public void disconnectListener(Exception e) {
         ArrayList<OnServerStateChangeListener> mList = ScreenImageController.getInstance().mList;
-
+        Log.e("wtt", "disconnectListener: "+mList );
         if (mList == null) return;
         for (OnServerStateChangeListener listener : mList) {
             listener.acceptH264TcpDisConnect(e, currentSize());
@@ -177,6 +177,7 @@ public class TcpServer implements AcceptMsgThread.OnTcpChangeListener {
 
     @Override
     public void disconnect(Exception e, AcceptMsgThread thread) {
+        Log.e("wtt", "disconnect: zz");
         boolean remove = acceptMsgThreadList.remove(thread);
         disconnectListener(e);
         Log.e("wtt", "移除成功" + remove + "acceptTcpDisConnect: 个数" + acceptMsgThreadList.size());
@@ -210,7 +211,6 @@ public class TcpServer implements AcceptMsgThread.OnTcpChangeListener {
             listener.acceptH264TcpNetSpeed(netSpeed);
         }
     }
-
 
     public void connectListener() {
         ArrayList<OnServerStateChangeListener> mList = ScreenImageController.getInstance().mList;

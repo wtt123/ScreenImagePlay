@@ -27,8 +27,7 @@
             android:id="@+id/tv_device_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="30px"
-            android:text="null"
+            android:text="设备名称：null"
             android:textColor="#fff"
             android:textSize="56px"
             android:textStyle="bold" />
@@ -41,24 +40,24 @@
             android:text="Wife:null"
             android:textColor="#00ae9d" />
 
-        <ImageView
-            android:id="@+id/iv_code"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_marginTop="100px" />
+        <!--<ImageView-->
+            <!--android:id="@+id/iv_code"-->
+            <!--android:layout_width="wrap_content"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:layout_gravity="center"-->
+            <!--android:layout_marginTop="100px" />-->
 
-        <TextView
-            android:id="@+id/tv_msg"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_above="@id/iv_code"
-            android:layout_centerHorizontal="true"
-            android:layout_marginBottom="100px"
-            android:layout_marginTop="40px"
-            android:text="扫一扫连接设备"
-            android:textColor="#fff"
-            android:textSize="46px" />
+        <!--<TextView-->
+            <!--android:id="@+id/tv_msg"-->
+            <!--android:layout_width="wrap_content"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:layout_above="@id/iv_code"-->
+            <!--android:layout_centerHorizontal="true"-->
+            <!--android:layout_marginBottom="100px"-->
+            <!--android:layout_marginTop="40px"-->
+            <!--android:text="扫一扫连接设备"-->
+            <!--android:textColor="#fff"-->
+            <!--android:textSize="46px" />-->
     </LinearLayout>
 
 

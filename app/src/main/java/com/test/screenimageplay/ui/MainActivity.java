@@ -28,8 +28,12 @@ import com.tbruyelle.rxpermissions2.RxPermissions;
 import com.test.screenimageplay.R;
 import com.test.screenimageplay.boastcast.NetWorkStateReceiver;
 import com.test.screenimageplay.core.BaseActivity;
+import com.wt.screenimage_lib.ScreenImageApi;
 import com.wt.screenimage_lib.entity.InfoDate;
 import com.test.screenimageplay.server.udp.UdpService;
+import com.wt.screenimage_lib.entity.ReceiveData;
+import com.wt.screenimage_lib.server.tcp.EncodeV1;
+import com.wt.screenimage_lib.server.tcp.interf.OnServerStateChangeListener;
 import com.wt.screenimage_lib.utils.AboutNetUtils;
 import com.test.screenimageplay.utils.NetWorkUtils;
 import com.test.screenimageplay.utils.SupportMultipleScreensUtil;
@@ -50,9 +54,9 @@ import java.io.IOException;
 import butterknife.BindView;
 
 public class MainActivity extends BaseActivity {
-
-    @BindView(R.id.iv_code)
-    ImageView ivCode;
+//
+//    @BindView(R.id.iv_code)
+//    ImageView ivCode;
     @BindView(R.id.sf_view)
     SurfaceView sfView;
     @BindView(R.id.ll_code)
@@ -72,7 +76,7 @@ public class MainActivity extends BaseActivity {
     private Context mContext;
     private NetWorkStateReceiver netWorkStateReceiver;
     private String currentIP;
-//    private MyOnServerStateChangeListener mListener;
+        private MyOnServerStateChangeListener mListener;
     private PowerManager.WakeLock mWakeLock;
     private Handler mHandler = new Handler() {
         @Override
@@ -100,9 +104,10 @@ public class MainActivity extends BaseActivity {
     protected void initView() {
         mContext = this;
         EventBus.getDefault().register(this);
+        //开启udp连接服务
         Intent serverIntent = new Intent(getApplicationContext(), UdpService.class);
         startService(serverIntent);
-//        startServer();
+        startServer();
         initialFIle();
         //surface保证他们进行交互，当surface销毁之后，surfaceholder断开surface及其客户端的联系
         mSurfaceHolder = sfView.getHolder();
@@ -166,13 +171,13 @@ public class MainActivity extends BaseActivity {
         updateUI(currentIP);
     }
 
-
-//    private void startServer() {
-//        ScreenImageController.getInstance()
-//                .init(getApplication()).startServer();
-//        mListener = new MyOnServerStateChangeListener();
-//        ScreenImageController.getInstance().addOnAcceptTcpStateChangeListener(mListener);
-//    }
+    // TODO: 2018/7/12 开启tcp通讯服务
+    private void startServer() {
+        ScreenImageController.getInstance()
+                .init(getApplication()).startServer();
+        mListener = new MyOnServerStateChangeListener();
+        ScreenImageController.getInstance().addOnAcceptTcpStateChangeListener(mListener);
+    }
 
 
     // TODO: 2018/6/12 wt用于本地测试
@@ -195,10 +200,10 @@ public class MainActivity extends BaseActivity {
     private void updateUI(String currentIP) {
         Log.e(TAG, "initData: xxx" + currentIP);
         //以ip生成二维码
-        Bitmap bitmap = CodeUtils.createImage(currentIP, 500, 500,
-                null);
-        llCode.setVisibility(View.VISIBLE);
-        ivCode.setImageBitmap(bitmap);
+//        Bitmap bitmap = CodeUtils.createImage(currentIP, 500, 500,
+//                null);
+//        llCode.setVisibility(View.VISIBLE);
+//        ivCode.setImageBitmap(bitmap);
         if (!TextUtils.isEmpty(AboutNetUtils.getDeviceModel())) {
             tvDeviceName.setText(AboutNetUtils.getDeviceModel());
         } else {
@@ -212,58 +217,57 @@ public class MainActivity extends BaseActivity {
     }
 
 
-//    class MyOnServerStateChangeListener extends OnServerStateChangeListener {
-//
-//        @Override
-//        public void acceptH264TcpNetSpeed(String netSpeed) {
-//            super.acceptH264TcpNetSpeed(netSpeed);
-//            runOnUiThread(()->{
-//                tvNetSpeed.setText("当前速度："+netSpeed);
-//            });
-//            Log.e(TAG, "netSpeed = " + netSpeed);
-//        }
-//
-//        @Override
-//        public void acceptH264TcpConnect(int currentSize) {
-//            //接收到客户端的连接...
-//            Log.e(TAG, " acceptH264TcpConnect 接收到客户端的连接...");
-//            Message msg = new Message();
-//            msg.what = 1;
-//            mHandler.sendMessage(msg);
-//        }
-//
-//        @Override
-//        public void acceptH264TcpDisConnect(Exception e, int currentSize) {
-//            //客户端的连接断开...
-//            Log.e(TAG, " acceptH264TcpDisConnect 客户端的连接断开..." + e.toString());
-//            if (currentSize < 1) {
-//                Message msg = new Message();
-//                msg.what = 2;
-//                mHandler.sendMessage(msg);
-//            }
-//            runOnUiThread(()->{
-//                tvNetSpeed.setText("");
-//            });
-//        }
-//
-//        @Override
-//        public EncodeV1 acceptLogicTcpMsg(ReceiveData data) {   //处理收到的消息逻辑,在子线程执行,返回的EnvodeV1的内容会在本次Tcp连接中返回
-//            if (data.getHeader().getMainCmd() == ScreenImageApi.LOGIC_REQUEST.MAIN_CMD &&
-//                    data.getHeader().getSubCmd() == ScreenImageApi.LOGIC_REQUEST.GET_START_INFO) {
-//                //收到初始化信息
-//                Log.e(TAG, "收到初始化屏幕消息,初始化SurfaceView宽度为" + data.getSendBody());
-//                String[] split = data.getSendBody().split(",");
-//                int width = Integer.parseInt(split[0]);
-//                int height = Integer.parseInt(split[1]);
-//                changeSurfaceState(width, height);
-//                EncodeV1 encodeV1 = new EncodeV1(ScreenImageApi.LOGIC_REPONSE.MAIN_CMD, ScreenImageApi.LOGIC_REPONSE.GET_START_INFO,
-//                        "480,800", new byte[0]);
-//                return encodeV1;
-//            }
-//            return null;
-//        }
-//    }
+    class MyOnServerStateChangeListener extends OnServerStateChangeListener {
 
+        @Override
+        public void acceptH264TcpNetSpeed(String netSpeed) {
+            super.acceptH264TcpNetSpeed(netSpeed);
+            runOnUiThread(()->{
+                tvNetSpeed.setText("当前速度："+netSpeed);
+            });
+//            Log.e(TAG, "netSpeed = " + netSpeed);
+        }
+
+        @Override
+        public void acceptH264TcpConnect(int currentSize) {
+            //接收到客户端的连接...
+            Log.e(TAG, " acceptH264TcpConnect 接收到客户端的连接...");
+            Message msg = new Message();
+            msg.what = 1;
+            mHandler.sendMessage(msg);
+        }
+
+        @Override
+        public void acceptH264TcpDisConnect(Exception e, int currentSize) {
+            //客户端的连接断开...
+            Log.e(TAG, " acceptH264TcpDisConnect 客户端的连接断开..." + e.toString());
+            if (currentSize < 1) {
+                Message msg = new Message();
+                msg.what = 2;
+                mHandler.sendMessage(msg);
+            }
+            runOnUiThread(()->{
+                tvNetSpeed.setText("");
+            });
+        }
+
+        @Override
+        public EncodeV1 acceptLogicTcpMsg(ReceiveData data) {   //处理收到的消息逻辑,在子线程执行,返回的EnvodeV1的内容会在本次Tcp连接中返回
+            if (data.getHeader().getMainCmd() == ScreenImageApi.LOGIC_REQUEST.MAIN_CMD &&
+                    data.getHeader().getSubCmd() == ScreenImageApi.LOGIC_REQUEST.GET_START_INFO) {
+                //收到初始化信息
+                Log.e(TAG, "收到初始化屏幕消息,初始化SurfaceView宽度为" + data.getSendBody());
+                String[] split = data.getSendBody().split(",");
+                int width = Integer.parseInt(split[0]);
+                int height = Integer.parseInt(split[1]);
+                changeSurfaceState(width, height);
+                EncodeV1 encodeV1 = new EncodeV1(ScreenImageApi.LOGIC_REPONSE.MAIN_CMD, ScreenImageApi.LOGIC_REPONSE.GET_START_INFO,
+                        "480,800", new byte[0]);
+                return encodeV1;
+            }
+            return null;
+        }
+    }
 
 
     // TODO: 2018/6/25 去权限设置页
@@ -287,40 +291,12 @@ public class MainActivity extends BaseActivity {
 
 
     // TODO: 2018/7/2 ip切换时更新当前ui
-//    @Subscribe(threadMode = ThreadMode.MAIN)
-//    public void onMessageEvent(String state) {
-//        Log.e("wtt", "onMessageEvent: " + state);
-//        updateUI(state);
-//    }
-
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onMessageEvent(InfoDate infoDate) {
-        Log.e("wtt", "onMessageEvent: " + infoDate.getFromState());
-        if (infoDate == null) {
-            return;
-        }
-        switch (infoDate.getFromState()) {
-            case 0:
-                updateUI(infoDate.getCurrentIP());
-                break;
-            case 1:
-                tvNetSpeed.setText("当前速度：" + infoDate.getNetSpeed());
-                break;
-            case 2:
-                llCode.setVisibility(View.GONE);
-                sfView.setVisibility(View.VISIBLE);
-                break;
-            case 3:
-                llCode.setVisibility(View.VISIBLE);
-                sfView.setVisibility(View.GONE);
-                tvNetSpeed.setText("");
-                break;
-            case 4:
-                changeSurfaceState(infoDate.getWidth(),infoDate.getHeight());
-                break;
-        }
-
+    public void onMessageEvent(String state) {
+        Log.e("wtt", "onMessageEvent: " + state);
+        updateUI(state);
     }
+
 
     // TODO: 2018/7/4 改变sf的大小
     private void changeSurfaceState(int width, int height) {
@@ -335,6 +311,7 @@ public class MainActivity extends BaseActivity {
             SupportMultipleScreensUtil.scale(sfView);
         });
     }
+
     private void acquireWakeLock() {
         if (mWakeLock == null) {
             PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
@@ -365,7 +342,7 @@ public class MainActivity extends BaseActivity {
     @Override
     public void finish() {
         super.finish();
-//        ScreenImageController.getInstance().removeOnAcceptTcpStateChangeListener(mListener);
+        ScreenImageController.getInstance().removeOnAcceptTcpStateChangeListener(mListener);
         if (mController != null) mController.stop();
     }
 }
