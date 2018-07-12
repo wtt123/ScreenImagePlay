@@ -15,7 +15,7 @@ import com.wt.screenimage_lib.server.tcp.NormalPlayQueue;
 import java.nio.ByteBuffer;
 
 /**
- * Created by xu.wang
+ * Created by wt
  * Date on  2017/11/29 14:04:57.
  *
  * @Desc 解码线程, 解码判断类型, 分开解析

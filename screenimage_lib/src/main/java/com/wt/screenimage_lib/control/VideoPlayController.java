@@ -14,7 +14,7 @@ import com.wt.screenimage_lib.server.tcp.NormalPlayQueue;
 import com.wt.screenimage_lib.server.tcp.interf.OnAcceptBuffListener;
 
 /**
- * Created by xu.wang
+ * Created by wt
  * Date on  2018/7/3 18:59:52.
  *
  * @Desc
@@ -39,18 +39,6 @@ public class VideoPlayController implements OnAcceptBuffListener {
         //开启解码线程
         mDecodeThread = new DecodeThread(videoMediaCodec.getCodec(), mPlayqueue);
         videoMediaCodec.start();
-//        mDecodeThread.setOnFrameChangeListener(new VideoPlay.OnFrameChangeListener() {
-//            @Override
-//            public void onFrameSize(int width, int height) {
-//                Log.e(TAG, "onFrameSize width = " + width + "height = " + height);
-//                Log.e(TAG, "surface view width = " + sfView.getWidth() + " height = " + sfView.getHeight());
-//                RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) sfView.getLayoutParams();
-//                layoutParams.width = width;
-//                layoutParams.height = height;
-////                layoutParams.addRule(RelativeLayout.CENTER_IN_PARENT);
-//                sfView.setLayoutParams(layoutParams);
-//            }
-//        });
         mDecodeThread.start();
     }
 

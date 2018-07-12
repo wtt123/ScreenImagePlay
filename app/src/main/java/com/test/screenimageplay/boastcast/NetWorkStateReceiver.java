@@ -11,7 +11,6 @@ import android.support.annotation.RequiresApi;
 
 import com.test.screenimageplay.utils.NetWorkUtils;
 import com.test.screenimageplay.utils.ToastUtils;
-import com.wt.screenimage_lib.entity.InfoDate;
 
 import org.greenrobot.eventbus.EventBus;
 

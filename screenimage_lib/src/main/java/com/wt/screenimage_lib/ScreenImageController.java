@@ -12,7 +12,7 @@ import java.util.ArrayList;
 
 
 /**
- * Created by xu.wang
+ * Created by wt
  * Date on  2018/7/3 18:49:43.
  *
  * @Desc 录屏控制类
