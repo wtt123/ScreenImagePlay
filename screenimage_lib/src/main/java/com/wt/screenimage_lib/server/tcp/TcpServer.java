@@ -74,7 +74,7 @@ public class TcpServer implements AcceptMsgThread.OnTcpChangeListener {
                         InputStream inputStream = socket.getInputStream();
                         byte[] temp = mAnalyticUtils.readByte(inputStream, 18);
                         ReceiveHeader receiveHeader = mAnalyticUtils.analysisHeader(temp);
-                        if (receiveHeader.getMainCmd() == ScreenImageApi.LOGIC_REQUEST.MAIN_CMD) {  //业务逻辑请求
+                        if (receiveHeader.getMainCmd() == ScreenImageApi.LOGIC_REQUEST.MAIN_CMD) {//业务逻辑请求
                             //接收逻辑消息线程
                             LogicThread logicThread = new LogicThread(socket, receiveHeader);
                             logicThread.setOnAcceptLogicMsgListener(new LogicThread.OnAcceptLogicMsgListener() {
@@ -87,7 +87,7 @@ public class TcpServer implements AcceptMsgThread.OnTcpChangeListener {
                         } else if (receiveHeader.getMainCmd() == ScreenImageApi.RECORD.MAIN_CMD) {//投屏请求
                             //开启接收H264和Aac线程
                             AcceptMsgThread acceptMsgThread = new AcceptMsgThread(socket,
-                                    mEncodeV1, mListener, TcpServer.this);
+                                    mEncodeV1, mListener,TcpServer.this);
                             acceptMsgThread.start();
                             //把线程添加到集合中去
                             acceptMsgThreadList.add(acceptMsgThread);
@@ -227,9 +227,11 @@ public class TcpServer implements AcceptMsgThread.OnTcpChangeListener {
         if (mList == null) return;
         for (OnServerStateChangeListener listener : mList) {
             if (deviceName.size() == 0) {
-                return;
+                listener.acceptH264TcpConnect(currentSize(),null);
+            }else {
+                listener.acceptH264TcpConnect(currentSize(), deviceName.get(thread));
             }
-            listener.acceptH264TcpConnect(currentSize(), deviceName.get(thread));
+
         }
     }
 }

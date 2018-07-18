@@ -103,7 +103,7 @@ public class AcceptMsgThread extends Thread implements AnalyticDataUtils.OnAnaly
                 mTcpListener.connect(this);
             }
         } catch (IOException e) {
-            Log.e("wtt", "sendStartMessage: zzz"+e.getMessage() );
+            Log.e("wtt", "sendStartMessage: zzz" + e.getMessage());
             if (mTcpListener != null) {
                 Log.e(TAG, "sendStartMessage: 断开2");
                 isSendSuccess = false;
@@ -128,11 +128,11 @@ public class AcceptMsgThread extends Thread implements AnalyticDataUtils.OnAnaly
                 byte[] header = mAnalyticDataUtils.readByte(InputStream, 18);
                 //数据如果为空，则休眠，防止cpu空转,  0.0 不可能会出现的,会一直阻塞在之前
                 if (header == null || header.length == 0) {
-                    Log.e("wt", "readMessage: 一直阻塞" );
+                    Log.e("wt", "readMessage: 一直阻塞");
                     SystemClock.sleep(1);
                     continue;
                 }
-                //根据协议分析数据头
+                // 根据协议分析数据头
                 ReceiveHeader receiveHeader = mAnalyticDataUtils.analysisHeader(header);
                 if (receiveHeader.getStringBodylength() == 0 && receiveHeader.getBuffSize() == 0) {
                     SystemClock.sleep(1);
@@ -147,7 +147,7 @@ public class AcceptMsgThread extends Thread implements AnalyticDataUtils.OnAnaly
                 if (receiveData == null || receiveData.getBuff() == null) {
                     continue;
                 }
-                mTcpListener.successMsg(receiveData.getSendBody(),this);
+                mTcpListener.successMsg(receiveData.getSendBody(), this);
                 //区分音视频
                 mDecoderUtils.isCategory(receiveData.getBuff());
             }
@@ -167,8 +167,6 @@ public class AcceptMsgThread extends Thread implements AnalyticDataUtils.OnAnaly
             }
         }
     }
-
-
 
 
     // TODO: 2018/6/14 中止线程
@@ -200,7 +198,7 @@ public class AcceptMsgThread extends Thread implements AnalyticDataUtils.OnAnaly
 
         void connect(AcceptMsgThread thread);
 
-        void successMsg(String body,AcceptMsgThread thread);
+        void successMsg(String body, AcceptMsgThread thread);
 
         void netspeed(String netSpeed);
     }

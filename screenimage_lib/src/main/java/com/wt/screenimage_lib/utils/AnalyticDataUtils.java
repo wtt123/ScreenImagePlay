@@ -53,10 +53,12 @@ public class AnalyticDataUtils {
         byte[] buff = null;
         //文本长度
         if (receiveHeader.getStringBodylength() != 0) {
+            Log.e("ttt", "analyticData: "+ receiveHeader.getStringBodylength());
             sendBody = readByte(is, receiveHeader.getStringBodylength());
         }
          //音视频长度
         if (receiveHeader.getBuffSize() != 0) {
+//            Log.e("ttt", "analyticData:555 "+ receiveHeader.getBuffSize());
             buff = readByte(is, receiveHeader.getBuffSize());
         }
         ReceiveData data = new ReceiveData();
