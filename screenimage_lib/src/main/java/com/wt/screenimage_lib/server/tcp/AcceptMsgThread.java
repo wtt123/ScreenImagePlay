@@ -128,6 +128,7 @@ public class AcceptMsgThread extends Thread implements AnalyticDataUtils.OnAnaly
                 byte[] header = mAnalyticDataUtils.readByte(InputStream, 18);
                 //数据如果为空，则休眠，防止cpu空转,  0.0 不可能会出现的,会一直阻塞在之前
                 if (header == null || header.length == 0) {
+                    Log.e("lw", "readMessage: 一直阻塞" );
                     SystemClock.sleep(1);
                     continue;
                 }
@@ -150,18 +151,19 @@ public class AcceptMsgThread extends Thread implements AnalyticDataUtils.OnAnaly
                 mDecoderUtils.isCategory(receiveData.getBuff());
             }
         } catch (Exception e) {
-            Log.e("wtt", "sendStartMessage: zzz"+e.getMessage() );
+            Log.e("lw", "sendStartMessage: zzz"+e.getMessage() );
             if (mTcpListener != null) {
                 Log.e(TAG, "断开1 readMessage: = " + e.toString());
                 mTcpListener.disconnect(e, this);
                 isSendSuccess = false;
             }
         } finally {
+            Log.e("lw", "readMessage: 异常断开");
             startFlag = false;
             try {
                 socket.close();
             } catch (IOException e) {
-                e.printStackTrace();
+                mTcpListener.disconnect(e, this);
             }
         }
     }

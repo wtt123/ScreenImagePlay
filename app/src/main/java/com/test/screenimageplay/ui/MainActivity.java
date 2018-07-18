@@ -7,6 +7,7 @@ import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
@@ -26,17 +27,17 @@ import com.tbruyelle.rxpermissions2.RxPermissions;
 import com.test.screenimageplay.R;
 import com.test.screenimageplay.boastcast.NetWorkStateReceiver;
 import com.test.screenimageplay.core.BaseActivity;
-import com.wt.screenimage_lib.ScreenImageApi;
 import com.test.screenimageplay.server.udp.UdpService;
+import com.test.screenimageplay.utils.NetWorkUtils;
+import com.test.screenimageplay.utils.SupportMultipleScreensUtil;
+import com.test.screenimageplay.utils.ToastUtils;
+import com.wt.screenimage_lib.ScreenImageApi;
+import com.wt.screenimage_lib.ScreenImageController;
+import com.wt.screenimage_lib.control.VideoPlayController;
 import com.wt.screenimage_lib.entity.ReceiveData;
 import com.wt.screenimage_lib.server.tcp.EncodeV1;
 import com.wt.screenimage_lib.server.tcp.interf.OnServerStateChangeListener;
 import com.wt.screenimage_lib.utils.AboutNetUtils;
-import com.test.screenimageplay.utils.NetWorkUtils;
-import com.test.screenimageplay.utils.SupportMultipleScreensUtil;
-import com.test.screenimageplay.utils.ToastUtils;
-import com.wt.screenimage_lib.ScreenImageController;
-import com.wt.screenimage_lib.control.VideoPlayController;
 import com.wt.screenimage_lib.utils.DensityUtil;
 
 import org.greenrobot.eventbus.EventBus;
@@ -48,11 +49,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 
 import butterknife.BindView;
+import butterknife.ButterKnife;
 
 public class MainActivity extends BaseActivity {
-    //
-//    @BindView(R.id.iv_code)
-//    ImageView ivCode;
     @BindView(R.id.sf_view)
     SurfaceView sfView;
     @BindView(R.id.ll_code)
@@ -63,32 +62,34 @@ public class MainActivity extends BaseActivity {
     TextView tvWifeName;
     @BindView(R.id.tv_net_speed)
     TextView tvNetSpeed;
+    @BindView(R.id.tv_client_device_name)
+    TextView tvClientDeviceName;
 
     private VideoPlayController mController;
     private SurfaceHolder mSurfaceHolder;
     private FileOutputStream fos;
 
-    private String TAG = "MainActivity";
+    private String TAG = "wt";
     private Context mContext;
     private NetWorkStateReceiver netWorkStateReceiver;
     private String currentIP;
     private MyOnServerStateChangeListener mListener;
     private PowerManager.WakeLock mWakeLock;
-    private Handler mHandler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            switch (msg.what) {
-                case 1:
-                    llCode.setVisibility(View.GONE);
-                    sfView.setVisibility(View.VISIBLE);
-                    break;
-                case 2:
-                    llCode.setVisibility(View.VISIBLE);
-                    sfView.setVisibility(View.GONE);
-                    break;
-            }
-        }
-    };
+//    private Handler mHandler = new Handler() {
+//        @Override
+//        public void handleMessage(Message msg) {
+//            switch (msg.what) {
+//                case 1:
+//                    llCode.setVisibility(View.GONE);
+//                    sfView.setVisibility(View.VISIBLE);
+//                    break;
+//                case 2:
+//                    llCode.setVisibility(View.VISIBLE);
+//                    sfView.setVisibility(View.GONE);
+//                    break;
+//            }
+//        }
+//    };
 
 
     @Override
@@ -100,6 +101,41 @@ public class MainActivity extends BaseActivity {
     protected void initView() {
         mContext = this;
         EventBus.getDefault().register(this);
+        RxPermissions rxPermissions = new RxPermissions(this);
+        String[] permissions = {
+                Manifest.permission.ACCESS_NETWORK_STATE,
+                Manifest.permission.ACCESS_WIFI_STATE,
+                Manifest.permission.READ_EXTERNAL_STORAGE,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                Manifest.permission.WAKE_LOCK};
+        rxPermissions
+                .requestEach(permissions)
+                .subscribe(permission -> { // will emit 2 Permission objects
+                    if (permission.granted) {
+                        Log.e("wtt", "accept: 同意");
+                    } else if (permission.shouldShowRequestPermissionRationale) {
+                        ToastUtils.showShort(mContext, "拒绝权限，等待下次询问哦");
+
+                    } else {
+                        startAppSettings();
+                        ToastUtils.showShort(mContext, "拒绝权限，不再弹出询问框，请前往APP应用设置中打开此权限");
+                    }
+                });
+        acquireWakeLock();
+    }
+
+    @Override
+    protected void initData() {
+        if (!AboutNetUtils.isNetWorkConnected(mContext)) {
+            ToastUtils.showShort(mContext, "请先连接网路！！");
+            return;
+        }
+        if (TextUtils.isEmpty(AboutNetUtils.getLocalIpAddress())) {
+            ToastUtils.showShort(mContext, "请先设置网络");
+            return;
+        }
+        currentIP = AboutNetUtils.getLocalIpAddress();
+        updateUI(currentIP);
         //开启udp连接服务
         Intent serverIntent = new Intent(getApplicationContext(), UdpService.class);
         startService(serverIntent);
@@ -132,41 +168,6 @@ public class MainActivity extends BaseActivity {
         });
     }
 
-    @Override
-    protected void initData() {
-        RxPermissions rxPermissions = new RxPermissions(this);
-        String[] permissions = {
-                Manifest.permission.ACCESS_NETWORK_STATE,
-                Manifest.permission.ACCESS_WIFI_STATE,
-                Manifest.permission.READ_EXTERNAL_STORAGE,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                Manifest.permission.WAKE_LOCK};
-        rxPermissions
-                .requestEach(permissions)
-                .subscribe(permission -> { // will emit 2 Permission objects
-                    if (permission.granted) {
-                        Log.e("wtt", "accept: 同意");
-                    } else if (permission.shouldShowRequestPermissionRationale) {
-                        ToastUtils.showShort(mContext, "拒绝权限，等待下次询问哦");
-
-                    } else {
-                        startAppSettings();
-                        ToastUtils.showShort(mContext, "拒绝权限，不再弹出询问框，请前往APP应用设置中打开此权限");
-                    }
-                });
-        acquireWakeLock();
-        if (!NetWorkUtils.isWifiActive(mContext)) {
-            ToastUtils.showShort(mContext, "请先连接无线网！！");
-            return;
-        }
-        if (TextUtils.isEmpty(NetWorkUtils.getIp(mContext))) {
-            ToastUtils.showShort(mContext, "请先设置网络");
-            return;
-        }
-        currentIP = NetWorkUtils.getIp(mContext);
-        updateUI(currentIP);
-    }
-
     // TODO: 2018/7/12 开启tcp通讯服务
     private void startServer() {
         ScreenImageController.getInstance()
@@ -195,18 +196,13 @@ public class MainActivity extends BaseActivity {
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     private void updateUI(String currentIP) {
         Log.e(TAG, "initData: xxx" + currentIP);
-        //以ip生成二维码
-//        Bitmap bitmap = CodeUtils.createImage(currentIP, 500, 500,
-//                null);
-//        llCode.setVisibility(View.VISIBLE);
-//        ivCode.setImageBitmap(bitmap);
         if (!TextUtils.isEmpty(AboutNetUtils.getDeviceModel())) {
             tvDeviceName.setText(AboutNetUtils.getDeviceModel());
         } else {
             tvDeviceName.setText("null");
         }
-        if (!TextUtils.isEmpty(AboutNetUtils.getWinfeName(mContext))) {
-            tvWifeName.setText("Wife：" + AboutNetUtils.getWinfeName(mContext));
+        if (!TextUtils.isEmpty(currentIP)) {
+            tvWifeName.setText("Wife：" + currentIP);
         } else {
             tvWifeName.setText("Wife：null");
         }
@@ -221,16 +217,16 @@ public class MainActivity extends BaseActivity {
             runOnUiThread(() -> {
                 tvNetSpeed.setText("当前速度：" + netSpeed);
             });
-            Log.i(TAG, "netSpeed = " + netSpeed);
         }
 
         @Override
         public void acceptH264TcpConnect(int currentSize) {
             //接收到客户端的连接...
             Log.e(TAG, " acceptH264TcpConnect 接收到客户端的连接...");
-            Message msg = new Message();
-            msg.what = 1;
-            mHandler.sendMessage(msg);
+            runOnUiThread(() -> {
+                llCode.setVisibility(View.GONE);
+                sfView.setVisibility(View.VISIBLE);
+            });
         }
 
         @Override
@@ -238,9 +234,11 @@ public class MainActivity extends BaseActivity {
             //客户端的连接断开...
             Log.e(TAG, " acceptH264TcpDisConnect 客户端的连接断开..." + e.toString());
             if (currentSize < 1) {
-                Message msg = new Message();
-                msg.what = 2;
-                mHandler.sendMessage(msg);
+                runOnUiThread(() -> {
+                    tvClientDeviceName.setVisibility(View.GONE);
+                    llCode.setVisibility(View.VISIBLE);
+                    sfView.setVisibility(View.GONE);
+                });
             }
             runOnUiThread(() -> {
                 tvNetSpeed.setText("");
@@ -256,7 +254,8 @@ public class MainActivity extends BaseActivity {
                 String[] split = data.getSendBody().split(",");
                 int width = Integer.parseInt(split[0]);
                 int height = Integer.parseInt(split[1]);
-                changeSurfaceState(width, height);
+                String deviceName = split[2];
+                changeSurfaceState(width, height,deviceName);
                 EncodeV1 encodeV1 = new EncodeV1(ScreenImageApi.LOGIC_REPONSE.MAIN_CMD, ScreenImageApi.LOGIC_REPONSE.GET_START_INFO,
                         "480,800", new byte[0]);
                 return encodeV1;
@@ -291,54 +290,56 @@ public class MainActivity extends BaseActivity {
     public void onMessageEvent(String state) {
         Log.e("wtt", "onMessageEvent: " + state);
         updateUI(state);
-        }
+    }
 
 
-        // TODO: 2018/7/4 改变sf的大小
-        private void changeSurfaceState ( int width, int height){
-            runOnUiThread(() -> {
-                RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) sfView.getLayoutParams();
-                int w = DensityUtil.dip2px(mContext, width);
-                int h = DensityUtil.dip2px(mContext, height);
-                layoutParams.width = w;
-                layoutParams.height = h;
-                layoutParams.addRule(RelativeLayout.CENTER_IN_PARENT);
-                sfView.setLayoutParams(layoutParams);
-                SupportMultipleScreensUtil.scale(sfView);
-            });
-        }
+    // TODO: 2018/7/4 改变sf的大小
+    private void changeSurfaceState(int width, int height, String deviceName) {
+        runOnUiThread(() -> {
+            RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) sfView.getLayoutParams();
+            int w = DensityUtil.dip2px(mContext, width);
+            int h = DensityUtil.dip2px(mContext, height);
+            layoutParams.width = w;
+            layoutParams.height = h;
+            layoutParams.addRule(RelativeLayout.CENTER_IN_PARENT);
+            sfView.setLayoutParams(layoutParams);
+            tvClientDeviceName.setVisibility(View.VISIBLE);
+            tvClientDeviceName.setText(deviceName+"正在投屏");
+            SupportMultipleScreensUtil.scale(sfView);
+        });
+    }
 
-        private void acquireWakeLock () {
-            if (mWakeLock == null) {
-                PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
-                mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP,
-                        this.getClass().getCanonicalName());
-                mWakeLock.acquire();
-            }
-        }
-
-
-        private void releaseWakeLock () {
-            if (mWakeLock != null) {
-                mWakeLock.release();
-                mWakeLock = null;
-            }
-        }
-
-        @Override
-        protected void onDestroy () {
-            unregisterReceiver(netWorkStateReceiver);
-            mHandler.removeCallbacksAndMessages(null);
-            EventBus.getDefault().unregister(this);
-            ScreenImageController.getInstance().stopServer();
-            releaseWakeLock();
-            super.onDestroy();
-        }
-
-        @Override
-        public void finish () {
-            super.finish();
-            ScreenImageController.getInstance().removeOnAcceptTcpStateChangeListener(mListener);
-            if (mController != null) mController.stop();
+    private void acquireWakeLock() {
+        if (mWakeLock == null) {
+            PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+            mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP,
+                    this.getClass().getCanonicalName());
+            mWakeLock.acquire();
         }
     }
+
+
+    private void releaseWakeLock() {
+        if (mWakeLock != null) {
+            mWakeLock.release();
+            mWakeLock = null;
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        unregisterReceiver(netWorkStateReceiver);
+//        mHandler.removeCallbacksAndMessages(null);
+        EventBus.getDefault().unregister(this);
+        ScreenImageController.getInstance().stopServer();
+        releaseWakeLock();
+        super.onDestroy();
+    }
+
+    @Override
+    public void finish() {
+        super.finish();
+        ScreenImageController.getInstance().removeOnAcceptTcpStateChangeListener(mListener);
+        if (mController != null) mController.stop();
+    }
+}

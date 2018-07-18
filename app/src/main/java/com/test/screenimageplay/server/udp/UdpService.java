@@ -118,34 +118,33 @@ public class UdpService extends Service implements OnUdpConnectListener {
     public String getAddressIP() {
         //检查网络是否连接
         while (!AboutNetUtils.isNetWorkConnected(context)) {
-            Log.e("123", "getAddressIP: wife");
         }
-        ip = getLocalIpAddress();
+        ip = AboutNetUtils.getLocalIpAddress();
         return ip;
     }
 
-    // TODO: 2018/7/12 获取本地所有ip地址
-    public String getLocalIpAddress() {
-        String address = null;
-        try {
-            for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements(); ) {
-                NetworkInterface intf = en.nextElement();
-                for (Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements(); ) {
-                    InetAddress inetAddress = enumIpAddr.nextElement();
-                    if (!inetAddress.isLoopbackAddress()) {
-                        address = inetAddress.getHostAddress().toString();
-                        //ipV6
-                        if (!address.contains("::")) {
-                            return address;
-                        }
-                    }
-                }
-            }
-        } catch (SocketException ex) {
-            Log.e("getIpAddress Exception", ex.toString());
-        }
-        return null;
-    }
+//    // TODO: 2018/7/12 获取本地所有ip地址
+//    public String getLocalIpAddress() {
+//        String address = null;
+//        try {
+//            for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements(); ) {
+//                NetworkInterface intf = en.nextElement();
+//                for (Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements(); ) {
+//                    InetAddress inetAddress = enumIpAddr.nextElement();
+//                    if (!inetAddress.isLoopbackAddress()) {
+//                        address = inetAddress.getHostAddress().toString();
+//                        //ipV6
+//                        if (!address.contains("::")) {
+//                            return address;
+//                        }
+//                    }
+//                }
+//            }
+//        } catch (SocketException ex) {
+//            Log.e("getIpAddress Exception", ex.toString());
+//        }
+//        return null;
+//    }
 
 
     @Override

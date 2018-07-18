@@ -72,22 +72,36 @@ public class NetWorkUtils {
      *
      * @return
      */
-    public static boolean isWifiActive(Context context) {
-        ConnectivityManager connectivity = (ConnectivityManager) context.getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo[] info;
-        if (connectivity != null) {
-            info = connectivity.getAllNetworkInfo();
-            if (info != null) {
-                for (int i = 0; i < info.length; i++) {
-                    if (info[i].getTypeName().equals("WIFI")
-                            && info[i].isConnected()) {
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
-    }
+//    public static boolean isWifiActive(Context context) {
+////        ConnectivityManager connectivity = (ConnectivityManager) context.getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
+////        NetworkInfo[] info;
+////        if (connectivity != null) {
+////            info = connectivity.getAllNetworkInfo();
+////            if (info != null) {
+////                for (int i = 0; i < info.length; i++) {
+////                    if (info[i].getTypeName().equals("WIFI")
+////                            && info[i].isConnected()) {
+////                        return true;
+////                    }
+////                }
+////            }
+////        }
+////        return false;
+//
+//
+//        // 获取系统的连接服务
+//        ConnectivityManager cManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+//         // 获取网络的连接情况
+//        cManager.getActiveNetworkInfo();
+//        // 网络连接标识
+//        boolean netSataus;
+//        if (cManager.getActiveNetworkInfo() != null) {
+//            netSataus = cManager.getActiveNetworkInfo().isAvailable();
+//            return netSataus;
+//        }
+//        return false;
+//
+//    }
 
     /**
      * 判断网址是否有效
@@ -132,20 +146,20 @@ public class NetWorkUtils {
      *
      * @return
      */
-    public static String getIp(Context context) {
-        String ip = "";
-        ConnectivityManager connMgr = (ConnectivityManager) context.getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo wifiInfo = connMgr
-                .getNetworkInfo(ConnectivityManager.TYPE_WIFI);
-        if (wifiInfo.isAvailable() && wifiInfo.isConnected()) {
-            // 获取本机ip
-            WifiManager wifiManager = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
-            ip = intIP2StringIP(wifiManager.getConnectionInfo().getIpAddress());
-        } else {
-            ToastUtils.showShort(context, "当前网络不可用,请检查网络设置!");
-        }
-        return ip;
-    }
+//    public static String getIp(Context context) {
+//        String ip = "";
+//        ConnectivityManager connMgr = (ConnectivityManager) context.getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
+//        NetworkInfo wifiInfo = connMgr
+//                .getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+//        if (wifiInfo.isAvailable() && wifiInfo.isConnected()) {
+//            // 获取本机ip
+//            WifiManager wifiManager = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+//            ip = intIP2StringIP(wifiManager.getConnectionInfo().getIpAddress());
+//        } else {
+//            ToastUtils.showShort(context, "当前网络不可用,请检查网络设置!");
+//        }
+//        return ip;
+//    }
 
     /**
      * 将得到的int类型的IP转换为String类型

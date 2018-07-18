@@ -75,23 +75,23 @@ public class AboutNetUtils {
     }
 
     // TODO: 2018/6/28 获取无线网名称
-    public static String getWinfeName(Context context) {
-        WifiManager wifiMgr = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
-        int wifiState = wifiMgr.getWifiState();
-        WifiInfo info = wifiMgr.getConnectionInfo();
-        if (info==null|| TextUtils.isEmpty(info.getSSID())){
-            return null;
-        }
-        //获取Android版本号
-        int sdkInt = Build.VERSION.SDK_INT;
-        if (sdkInt >= 17) {
-            if (info.getSSID().startsWith("\"") && info.getSSID().endsWith("\"")) {
-
-                 return info.getSSID().substring(1, info.getSSID().length() - 1);
-            }
-        }
-        return info != null ? info.getSSID() : null;
-    }
+//    public static String getWinfeName(Context context) {
+//        WifiManager wifiMgr = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+//        int wifiState = wifiMgr.getWifiState();
+//        WifiInfo info = wifiMgr.getConnectionInfo();
+//        if (info==null|| TextUtils.isEmpty(info.getSSID())){
+//            return null;
+//        }
+//        //获取Android版本号
+//        int sdkInt = Build.VERSION.SDK_INT;
+//        if (sdkInt >= 17) {
+//            if (info.getSSID().startsWith("\"") && info.getSSID().endsWith("\"")) {
+//
+//                 return info.getSSID().substring(1, info.getSSID().length() - 1);
+//            }
+//        }
+//        return info != null ? info.getSSID() : null;
+//    }
 
     public  static boolean isNetWorkConnected(Context context) {
         // TODO Auto-generated method stub
@@ -111,4 +111,28 @@ public class AboutNetUtils {
         }
         return false;
     }
+
+    // TODO: 2018/7/12 获取本地所有ip地址
+    public static String getLocalIpAddress() {
+        String address = null;
+        try {
+            for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements(); ) {
+                NetworkInterface intf = en.nextElement();
+                for (Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements(); ) {
+                    InetAddress inetAddress = enumIpAddr.nextElement();
+                    if (!inetAddress.isLoopbackAddress()) {
+                        address = inetAddress.getHostAddress().toString();
+                        //ipV6
+                        if (!address.contains("::")) {
+                            return address;
+                        }
+                    }
+                }
+            }
+        } catch (SocketException ex) {
+            Log.e("getIpAddress Exception", ex.toString());
+        }
+        return null;
+    }
+
 }

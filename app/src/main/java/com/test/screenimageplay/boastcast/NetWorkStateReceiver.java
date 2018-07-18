@@ -11,6 +11,7 @@ import android.support.annotation.RequiresApi;
 
 import com.test.screenimageplay.utils.NetWorkUtils;
 import com.test.screenimageplay.utils.ToastUtils;
+import com.wt.screenimage_lib.utils.AboutNetUtils;
 
 import org.greenrobot.eventbus.EventBus;
 
@@ -31,11 +32,15 @@ public class NetWorkStateReceiver extends BroadcastReceiver {
             //获取ConnectivityManager对象对应的NetworkInfo对象
             // 获取WIFI连接的信息
             NetworkInfo wifiNetworkInfo = connMgr.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
-            if (wifiNetworkInfo.isConnected()) {
-                EventBus.getDefault().post(NetWorkUtils.getIp(context));
-            } else if (!wifiNetworkInfo.isConnected()) {
+            NetworkInfo ethNetInfo = connMgr.getNetworkInfo(ConnectivityManager.TYPE_ETHERNET);
+            if (wifiNetworkInfo != null && wifiNetworkInfo.isConnected() || ethNetInfo != null && ethNetInfo.isConnected()) {
+                EventBus.getDefault().post(AboutNetUtils.getLocalIpAddress());
+//                EventBus.getDefault().post(NetWorkUtils.getIp(context));
+                return;
+            }
+            if (!wifiNetworkInfo.isConnected()&&!ethNetInfo.isConnected()) {
                 EventBus.getDefault().post("");
-                ToastUtils.showShort(context, "请先连接无线网！！");
+                ToastUtils.showShort(context, "请先连接网络！！");
             }
             return;
         }
@@ -48,12 +53,14 @@ public class NetWorkStateReceiver extends BroadcastReceiver {
         for (int i = 0; i < networks.length; i++) {
             //获取ConnectivityManager对象对应的NetworkInfo对象
             NetworkInfo networkInfo = connMgr.getNetworkInfo(networks[i]);
-            if (networkInfo.getType() == ConnectivityManager.TYPE_WIFI) {
+            if (networkInfo.getType() == ConnectivityManager.TYPE_WIFI||networkInfo.getType()
+                    ==ConnectivityManager.TYPE_ETHERNET) {
                 if (networkInfo.isConnected()) {
-                    EventBus.getDefault().post(NetWorkUtils.getIp(context));
+                    EventBus.getDefault().post(AboutNetUtils.getLocalIpAddress());
+//                    EventBus.getDefault().post(NetWorkUtils.getIp(context));
                 } else if (!networkInfo.isConnected()) {
                     EventBus.getDefault().post("");
-                    ToastUtils.showShort(context, "请先连接无线网！！");
+                    ToastUtils.showShort(context, "请先连接网络！！");
                 }
                 break;
             }

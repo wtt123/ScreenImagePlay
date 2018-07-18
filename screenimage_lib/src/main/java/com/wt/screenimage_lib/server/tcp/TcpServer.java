@@ -62,7 +62,7 @@ public class TcpServer implements AcceptMsgThread.OnTcpChangeListener {
                     InetSocketAddress socketAddress = new InetSocketAddress(Constants.TCPPORT);
                     serverSocket.bind(socketAddress);
                     acceptMsgThreadList.clear();
-                    Log.d(TAG, "start server success");
+                    Log.e("lw", "run: start server success");
                     while (isAccept) {
                         //服务端接收客户端的连接请求
                         Socket socket = serverSocket.accept();
@@ -100,9 +100,9 @@ public class TcpServer implements AcceptMsgThread.OnTcpChangeListener {
                         }
                     }
                 } catch (Exception e) {
-                    Log.e(TAG, "" + e.toString());
+                    Log.e("lw", "" + e.toString());
                 } finally {
-                    Log.e(TAG, "run: socket has close");
+                    Log.e("lw", "run: socket has close");
                     try {
                         serverSocket.close();
                     } catch (IOException e) {

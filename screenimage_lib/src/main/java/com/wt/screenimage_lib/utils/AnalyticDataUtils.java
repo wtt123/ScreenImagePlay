@@ -65,46 +65,6 @@ public class AnalyticDataUtils {
         data.setBuff(buff);
         return data;
     }
-//
-//    // TODO: 2018/7/5 wt 解析头数据
-//    public ReceiveData synchAnalyticData(InputStream is, ReceiveHeader receiveHeader) throws IOException {
-//        byte[] sendBody = null;
-//        byte[] buff = null;
-//        //文本长度
-//        if (receiveHeader.getStringBodylength() != 0) {
-//            sendBody = readByte(is, receiveHeader.getStringBodylength());
-//        }
-//        //音视频长度
-//        if (receiveHeader.getBuffSize() != 0) {
-//            buff = readByte(is, receiveHeader.getBuffSize());
-//        }
-//        ReceiveData data = new ReceiveData();
-//        data.setHeader(receiveHeader);
-//        data.setSendBody(sendBody == null ? "" : new String(sendBody));
-//        data.setBuff(buff);
-//       if (mListener != null) mListener.onSuccess(data);
-//        return data;
-//    }
-
-//    // TODO: 2018/7/5 wt 解析头数据
-//    public ReceiveData synchAnalyticData(InputStream is, ReceiveHeader receiveHeader) throws IOException {
-//        byte[] sendBody = null;
-//        byte[] buff = null;
-//        //文本长度
-//        if (receiveHeader.getStringBodylength() != 0) {
-//            sendBody = readByte(is, receiveHeader.getStringBodylength());
-//        }
-//        //音视频长度
-//        if (receiveHeader.getBuffSize() != 0) {
-//            buff = readByte(is, receiveHeader.getBuffSize());
-//        }
-//        ReceiveData data = new ReceiveData();
-//        data.setHeader(receiveHeader);
-//        data.setSendBody(sendBody == null ? "" : new String(sendBody));
-//        Log.e("wtt", "analyticData: " + new String(sendBody));
-//        data.setBuff(buff);
-//        return data;
-//    }
 
     /**
      * 保证从流里读到指定长度数据
@@ -121,11 +81,13 @@ public class AnalyticDataUtils {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         while (len < readSize) {
             eachLen = is.read(buff);
+            Log.e("wt", "readByte: "+eachLen);
             if (eachLen != -1) {
                 if (isCalculate) readLength += eachLen;
                 len += eachLen;
                 baos.write(buff, 0, eachLen);
             } else {
+                Log.e("wt", "readByte: zzz" );
                 baos.close();
                 throw new IOException();
             }
@@ -159,6 +121,7 @@ public class AnalyticDataUtils {
             @Override
             public void run() {
                 if (mListener != null) {
+//                    Log.e("lw", "run: 走网速" );
                     mListener.netSpeed((readLength / 1024) + " kb/s");
                     readLength = 0;
                 }
@@ -171,7 +134,6 @@ public class AnalyticDataUtils {
         try {
             if (timer != null) timer.cancel();
         } catch (Exception e) {
-
         }
     }
 }
