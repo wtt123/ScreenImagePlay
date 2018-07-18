@@ -1,5 +1,6 @@
 package com.wt.screenimage_lib.server.tcp;
 
+import android.text.TextUtils;
 import android.util.Log;
 
 
@@ -18,7 +19,9 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created wt
@@ -38,8 +41,11 @@ public class TcpServer implements AcceptMsgThread.OnTcpChangeListener {
     private AcceptMsgThread acceptMsgThread1;
     private AnalyticDataUtils mAnalyticUtils;
 
+    private Map<AcceptMsgThread, String> deviceName = new HashMap<>();
+
+
     public TcpServer() {
-        Log.e("123", "TcpServer: zzz" );
+        Log.e("123", "TcpServer: zzz");
         acceptMsgThreadList = new ArrayList<>();
         mAnalyticUtils = new AnalyticDataUtils();
         init();
@@ -62,7 +68,6 @@ public class TcpServer implements AcceptMsgThread.OnTcpChangeListener {
                     InetSocketAddress socketAddress = new InetSocketAddress(Constants.TCPPORT);
                     serverSocket.bind(socketAddress);
                     acceptMsgThreadList.clear();
-                    Log.e("lw", "run: start server success");
                     while (isAccept) {
                         //服务端接收客户端的连接请求
                         Socket socket = serverSocket.accept();
@@ -82,15 +87,13 @@ public class TcpServer implements AcceptMsgThread.OnTcpChangeListener {
                         } else if (receiveHeader.getMainCmd() == ScreenImageApi.RECORD.MAIN_CMD) {//投屏请求
                             //开启接收H264和Aac线程
                             AcceptMsgThread acceptMsgThread = new AcceptMsgThread(socket,
-                                    mEncodeV1, mListener, TcpServer.this );
+                                    mEncodeV1, mListener, TcpServer.this);
                             acceptMsgThread.start();
                             //把线程添加到集合中去
                             acceptMsgThreadList.add(acceptMsgThread);
-                            Log.e(TAG, "wtt" + acceptMsgThreadList.size());
                             if (acceptMsgThreadList.size() > 1) {
                                 continue;
                             }
-                            Log.e("wtt: ", "wtt" + acceptMsgThreadList.size());
                             //默认先发送成功标识给第一个客户端
                             acceptMsgThreadList.get(0).sendStartMessage();
                             //把第一个投屏的设备对象记录下来
@@ -100,9 +103,9 @@ public class TcpServer implements AcceptMsgThread.OnTcpChangeListener {
                         }
                     }
                 } catch (Exception e) {
-                    Log.e("lw", "" + e.toString());
+
                 } finally {
-                    Log.e("lw", "run: socket has close");
+
                     try {
                         serverSocket.close();
                     } catch (IOException e) {
@@ -140,7 +143,7 @@ public class TcpServer implements AcceptMsgThread.OnTcpChangeListener {
         }.start();
     }
 
-
+    // TODO: 2018/7/18 获取客户端信息
     public EncodeV1 acceptLogicMsg(ReceiveData data) {
         ArrayList<OnServerStateChangeListener> mList = ScreenImageController.getInstance().mList;
         if (mList == null) {
@@ -159,7 +162,7 @@ public class TcpServer implements AcceptMsgThread.OnTcpChangeListener {
      */
     public void disconnectListener(Exception e) {
         ArrayList<OnServerStateChangeListener> mList = ScreenImageController.getInstance().mList;
-        Log.e("wtt", "disconnectListener: "+mList );
+        Log.e("wtt", "disconnectListener: " + mList);
         if (mList == null) return;
         for (OnServerStateChangeListener listener : mList) {
             listener.acceptH264TcpDisConnect(e, currentSize());
@@ -177,9 +180,17 @@ public class TcpServer implements AcceptMsgThread.OnTcpChangeListener {
 
 
     @Override
+    public void connect(AcceptMsgThread thread) {
+        connectListener(thread);
+    }
+
+    @Override
     public void disconnect(Exception e, AcceptMsgThread thread) {
-        Log.e("wtt", "disconnect: zz");
         boolean remove = acceptMsgThreadList.remove(thread);
+        //删除相对应数据信息
+        if (deviceName.size() != 0) {
+            deviceName.remove(thread);
+        }
         disconnectListener(e);
         Log.e(TAG, "移除成功" + remove + "acceptTcpDisConnect: 个数" + acceptMsgThreadList.size());
         if (acceptMsgThreadList == null || acceptMsgThreadList.size() == 0) {
@@ -187,22 +198,20 @@ public class TcpServer implements AcceptMsgThread.OnTcpChangeListener {
         }
         //如果停止的不是正在投屏的线程，就不再去走下面的方法
         if (thread != acceptMsgThreadList.get(0) && thread != acceptMsgThread1) {
-            Log.e(TAG, "setacceptTcpDisConnect: zzz");
             return;
         }
         //开启第下一个投屏
         acceptMsgThreadList.get(0).sendStartMessage();
     }
 
-    /**
-     * 2018/6/15 wt连接断开逻辑
-     *
-     * @param thread
-     */
     @Override
-    public void connect(AcceptMsgThread thread) {
-        connectListener();
+    public void successMsg(String body, AcceptMsgThread thread) {
+        if (TextUtils.isEmpty(body)) {
+            return;
+        }
+        deviceName.put(thread, body);
     }
+
 
     @Override
     public void netspeed(String netSpeed) {
@@ -213,11 +222,14 @@ public class TcpServer implements AcceptMsgThread.OnTcpChangeListener {
         }
     }
 
-    public void connectListener() {
+    public void connectListener(AcceptMsgThread thread) {
         ArrayList<OnServerStateChangeListener> mList = ScreenImageController.getInstance().mList;
         if (mList == null) return;
         for (OnServerStateChangeListener listener : mList) {
-            listener.acceptH264TcpConnect(currentSize());
+            if (deviceName.size() == 0) {
+                return;
+            }
+            listener.acceptH264TcpConnect(currentSize(), deviceName.get(thread));
         }
     }
 }

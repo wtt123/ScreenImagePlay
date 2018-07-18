@@ -35,6 +35,7 @@ import com.wt.screenimage_lib.ScreenImageApi;
 import com.wt.screenimage_lib.ScreenImageController;
 import com.wt.screenimage_lib.control.VideoPlayController;
 import com.wt.screenimage_lib.entity.ReceiveData;
+import com.wt.screenimage_lib.server.tcp.AcceptMsgThread;
 import com.wt.screenimage_lib.server.tcp.EncodeV1;
 import com.wt.screenimage_lib.server.tcp.interf.OnServerStateChangeListener;
 import com.wt.screenimage_lib.utils.AboutNetUtils;
@@ -47,6 +48,10 @@ import org.greenrobot.eventbus.ThreadMode;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -75,21 +80,7 @@ public class MainActivity extends BaseActivity {
     private String currentIP;
     private MyOnServerStateChangeListener mListener;
     private PowerManager.WakeLock mWakeLock;
-//    private Handler mHandler = new Handler() {
-//        @Override
-//        public void handleMessage(Message msg) {
-//            switch (msg.what) {
-//                case 1:
-//                    llCode.setVisibility(View.GONE);
-//                    sfView.setVisibility(View.VISIBLE);
-//                    break;
-//                case 2:
-//                    llCode.setVisibility(View.VISIBLE);
-//                    sfView.setVisibility(View.GONE);
-//                    break;
-//            }
-//        }
-//    };
+
 
 
     @Override
@@ -220,12 +211,16 @@ public class MainActivity extends BaseActivity {
         }
 
         @Override
-        public void acceptH264TcpConnect(int currentSize) {
+        public void acceptH264TcpConnect(int currentSize, String deviceName) {
             //接收到客户端的连接...
             Log.e(TAG, " acceptH264TcpConnect 接收到客户端的连接...");
             runOnUiThread(() -> {
                 llCode.setVisibility(View.GONE);
                 sfView.setVisibility(View.VISIBLE);
+                if (!TextUtils.isEmpty(deviceName)) {
+                    tvClientDeviceName.setVisibility(View.VISIBLE);
+                    tvClientDeviceName.setText(deviceName + "正在投屏");
+                }
             });
         }
 
@@ -254,8 +249,8 @@ public class MainActivity extends BaseActivity {
                 String[] split = data.getSendBody().split(",");
                 int width = Integer.parseInt(split[0]);
                 int height = Integer.parseInt(split[1]);
-                String deviceName = split[2];
-                changeSurfaceState(width, height,deviceName);
+//                String deviceName = split[2];
+                changeSurfaceState(width, height);
                 EncodeV1 encodeV1 = new EncodeV1(ScreenImageApi.LOGIC_REPONSE.MAIN_CMD, ScreenImageApi.LOGIC_REPONSE.GET_START_INFO,
                         "480,800", new byte[0]);
                 return encodeV1;
@@ -294,7 +289,7 @@ public class MainActivity extends BaseActivity {
 
 
     // TODO: 2018/7/4 改变sf的大小
-    private void changeSurfaceState(int width, int height, String deviceName) {
+    private void changeSurfaceState(int width, int height) {
         runOnUiThread(() -> {
             RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) sfView.getLayoutParams();
             int w = DensityUtil.dip2px(mContext, width);
@@ -303,8 +298,6 @@ public class MainActivity extends BaseActivity {
             layoutParams.height = h;
             layoutParams.addRule(RelativeLayout.CENTER_IN_PARENT);
             sfView.setLayoutParams(layoutParams);
-            tvClientDeviceName.setVisibility(View.VISIBLE);
-            tvClientDeviceName.setText(deviceName+"正在投屏");
             SupportMultipleScreensUtil.scale(sfView);
         });
     }

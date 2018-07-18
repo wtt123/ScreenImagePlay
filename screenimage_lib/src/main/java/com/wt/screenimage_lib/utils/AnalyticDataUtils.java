@@ -81,13 +81,11 @@ public class AnalyticDataUtils {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         while (len < readSize) {
             eachLen = is.read(buff);
-            Log.e("wt", "readByte: "+eachLen);
             if (eachLen != -1) {
                 if (isCalculate) readLength += eachLen;
                 len += eachLen;
                 baos.write(buff, 0, eachLen);
             } else {
-                Log.e("wt", "readByte: zzz" );
                 baos.close();
                 throw new IOException();
             }
@@ -121,7 +119,6 @@ public class AnalyticDataUtils {
             @Override
             public void run() {
                 if (mListener != null) {
-//                    Log.e("lw", "run: 走网速" );
                     mListener.netSpeed((readLength / 1024) + " kb/s");
                     readLength = 0;
                 }

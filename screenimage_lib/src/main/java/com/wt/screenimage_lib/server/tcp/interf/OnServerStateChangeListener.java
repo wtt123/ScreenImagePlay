@@ -13,7 +13,7 @@ import java.io.OutputStream;
 
 public abstract class OnServerStateChangeListener {
     //接收到客户端的Tcp连接
-    public abstract void acceptH264TcpConnect(int currentSize);
+    public abstract void acceptH264TcpConnect(int currentSize,String deviceName);
 
     /**
      * by wt
