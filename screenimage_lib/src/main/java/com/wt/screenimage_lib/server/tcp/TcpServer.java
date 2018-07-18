@@ -32,6 +32,7 @@ import java.util.Map;
 
 public class TcpServer implements AcceptMsgThread.OnTcpChangeListener {
     private static final String TAG = "TcpServer";
+    private String previousName;
     private ServerSocket serverSocket;
     private boolean isAccept = true;
     private EncodeV1 mEncodeV1;
@@ -42,10 +43,14 @@ public class TcpServer implements AcceptMsgThread.OnTcpChangeListener {
     private AnalyticDataUtils mAnalyticUtils;
 
     private Map<AcceptMsgThread, String> deviceName = new HashMap<>();
+    private Map<AcceptMsgThread, String> map2;
+
+    private AcceptMsgThread currentThread;
+
+//    private List<String> deviceNames=new ArrayList<>();
 
 
     public TcpServer() {
-        Log.e("123", "TcpServer: zzz");
         acceptMsgThreadList = new ArrayList<>();
         mAnalyticUtils = new AnalyticDataUtils();
         init();
@@ -86,8 +91,11 @@ public class TcpServer implements AcceptMsgThread.OnTcpChangeListener {
                             logicThread.start();
                         } else if (receiveHeader.getMainCmd() == ScreenImageApi.RECORD.MAIN_CMD) {//投屏请求
                             //开启接收H264和Aac线程
+                            if (receiveHeader.getStringBodylength() != 0) {
+                                mAnalyticUtils.analyticData(inputStream, receiveHeader);
+                            }
                             AcceptMsgThread acceptMsgThread = new AcceptMsgThread(socket,
-                                    mEncodeV1, mListener,TcpServer.this);
+                                    mEncodeV1, mListener, TcpServer.this);
                             acceptMsgThread.start();
                             //把线程添加到集合中去
                             acceptMsgThreadList.add(acceptMsgThread);
@@ -99,13 +107,14 @@ public class TcpServer implements AcceptMsgThread.OnTcpChangeListener {
                             //把第一个投屏的设备对象记录下来
                             acceptMsgThread1 = acceptMsgThreadList.get(0);
                         } else {
+                            Log.e(TAG, "socket close");
                             socket.close();
                         }
                     }
                 } catch (Exception e) {
 
                 } finally {
-
+                    Log.e(TAG, "TcpServer: thread close");
                     try {
                         serverSocket.close();
                     } catch (IOException e) {
@@ -209,7 +218,29 @@ public class TcpServer implements AcceptMsgThread.OnTcpChangeListener {
         if (TextUtils.isEmpty(body)) {
             return;
         }
-        deviceName.put(thread, body);
+        if (!TextUtils.isEmpty(body)) {
+            Log.e("wtt", "successMsg: " + body);
+            deviceName.put(thread, body);
+        }
+        //创建一个新的map2
+//        map2 = new HashMap<AcceptMsgThread, String>();
+//        for(AcceptMsgThread key:deviceName.keySet()){
+//            if(!map2.containsValue(deviceName.get(key))){
+//                map2.put(key, deviceName.get(key));
+//            }
+//        }
+
+//        if (TextUtils.isEmpty(body)||TextUtils.isEmpty(previousName)||TextUtils.equals(previousName,body)) {
+//            previousName=body;
+//            return;
+//        }
+//        deviceName.put(thread, body);
+        ArrayList<OnServerStateChangeListener> mList = ScreenImageController.getInstance().mList;
+        if (mList == null) return;
+        for (OnServerStateChangeListener listener : mList) {
+            Log.e("wtt", "successMsg: "+deviceName.get(currentThread) );
+            listener.displayNameChange(deviceName.get(currentThread));
+        }
     }
 
 
@@ -223,15 +254,11 @@ public class TcpServer implements AcceptMsgThread.OnTcpChangeListener {
     }
 
     public void connectListener(AcceptMsgThread thread) {
+        this.currentThread=thread;
         ArrayList<OnServerStateChangeListener> mList = ScreenImageController.getInstance().mList;
         if (mList == null) return;
         for (OnServerStateChangeListener listener : mList) {
-            if (deviceName.size() == 0) {
-                listener.acceptH264TcpConnect(currentSize(),null);
-            }else {
-                listener.acceptH264TcpConnect(currentSize(), deviceName.get(thread));
-            }
-
+            listener.acceptH264TcpConnect(currentSize());
         }
     }
 }

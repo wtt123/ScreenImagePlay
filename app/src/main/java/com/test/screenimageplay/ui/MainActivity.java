@@ -211,12 +211,18 @@ public class MainActivity extends BaseActivity {
         }
 
         @Override
-        public void acceptH264TcpConnect(int currentSize, String deviceName) {
+        public void acceptH264TcpConnect(int currentSize) {
             //接收到客户端的连接...
-            Log.e(TAG, " acceptH264TcpConnect 接收到客户端的连接...");
+            Log.e("wtt", " acceptH264TcpConnect 接收到客户端的连接...");
             runOnUiThread(() -> {
                 llCode.setVisibility(View.GONE);
                 sfView.setVisibility(View.VISIBLE);
+            });
+        }
+
+        @Override
+        public void displayNameChange(String deviceName) {
+            runOnUiThread(() -> {
                 if (!TextUtils.isEmpty(deviceName)) {
                     tvClientDeviceName.setVisibility(View.VISIBLE);
                     tvClientDeviceName.setText(deviceName + "正在投屏");
@@ -283,7 +289,6 @@ public class MainActivity extends BaseActivity {
     // TODO: 2018/7/2 ip切换时更新当前ui
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(String state) {
-        Log.e("wtt", "onMessageEvent: " + state);
         updateUI(state);
     }
 

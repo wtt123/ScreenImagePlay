@@ -103,7 +103,6 @@ public class AcceptMsgThread extends Thread implements AnalyticDataUtils.OnAnaly
                 mTcpListener.connect(this);
             }
         } catch (IOException e) {
-            Log.e("wtt", "sendStartMessage: zzz" + e.getMessage());
             if (mTcpListener != null) {
                 Log.e(TAG, "sendStartMessage: 断开2");
                 isSendSuccess = false;
@@ -128,7 +127,6 @@ public class AcceptMsgThread extends Thread implements AnalyticDataUtils.OnAnaly
                 byte[] header = mAnalyticDataUtils.readByte(InputStream, 18);
                 //数据如果为空，则休眠，防止cpu空转,  0.0 不可能会出现的,会一直阻塞在之前
                 if (header == null || header.length == 0) {
-                    Log.e("wt", "readMessage: 一直阻塞");
                     SystemClock.sleep(1);
                     continue;
                 }
@@ -159,7 +157,6 @@ public class AcceptMsgThread extends Thread implements AnalyticDataUtils.OnAnaly
             }
         } finally {
             startFlag = false;
-            mTcpListener.disconnect(null, this);
             try {
                 socket.close();
             } catch (IOException e) {
@@ -176,17 +173,6 @@ public class AcceptMsgThread extends Thread implements AnalyticDataUtils.OnAnaly
         //中断非阻塞状态线程
         this.interrupt();
     }
-//
-//
-//    // TODO: 2018/6/14 从解析成功后回调过来
-//    @Override
-//    public void onSuccess(ReceiveData data) {
-//        if (data == null) {
-//            return;
-//        }
-//        //区分音视频
-//        mDecoderUtils.isCategory(data.getBuff());
-//    }
 
     @Override
     public void netSpeed(String msg) {
