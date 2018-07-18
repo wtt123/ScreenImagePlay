@@ -86,8 +86,8 @@ public class TcpServer implements AcceptMsgThread.OnTcpChangeListener {
                             logicThread.start();
                         } else if (receiveHeader.getMainCmd() == ScreenImageApi.RECORD.MAIN_CMD) {//投屏请求
                             //开启接收H264和Aac线程
-                            if (receiveHeader.getStringBodylength() != 0){
-                                mAnalyticUtils.analyticData(inputStream,receiveHeader);
+                            if (receiveHeader.getStringBodylength() != 0) {
+                                mAnalyticUtils.analyticData(inputStream, receiveHeader);
                             }
                             AcceptMsgThread acceptMsgThread = new AcceptMsgThread(socket,
                                     mEncodeV1, mListener, TcpServer.this);
@@ -102,7 +102,7 @@ public class TcpServer implements AcceptMsgThread.OnTcpChangeListener {
                             //把第一个投屏的设备对象记录下来
                             acceptMsgThread1 = acceptMsgThreadList.get(0);
                         } else {
-                            Log.e(TAG,"socket close");
+                            Log.e(TAG, "socket close");
                             socket.close();
                         }
                     }
@@ -210,10 +210,9 @@ public class TcpServer implements AcceptMsgThread.OnTcpChangeListener {
 
     @Override
     public void successMsg(String body, AcceptMsgThread thread) {
-        if (TextUtils.isEmpty(body) || TextUtils.isEmpty(previousName)) {
-            return;
-        }
-        if (TextUtils.equals(previousName,body)){
+        //如果上一次记录的设备型号,和当前回调型号一样,就不回调了...
+        if (TextUtils.isEmpty(body) || TextUtils.isEmpty(previousName) || TextUtils.equals(previousName, body)) {
+            previousName = body;
             return;
         }
         deviceName.put(thread, body);
@@ -235,7 +234,7 @@ public class TcpServer implements AcceptMsgThread.OnTcpChangeListener {
     }
 
     public void connectListener(AcceptMsgThread thread) {
-        Log.e(TAG,"send h264 connect...");
+        Log.e(TAG, "send h264 connect...");
         ArrayList<OnServerStateChangeListener> mList = ScreenImageController.getInstance().mList;
         if (mList == null) return;
         for (OnServerStateChangeListener listener : mList) {
