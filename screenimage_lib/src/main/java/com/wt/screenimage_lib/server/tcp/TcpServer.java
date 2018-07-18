@@ -91,6 +91,7 @@ public class TcpServer implements AcceptMsgThread.OnTcpChangeListener {
                             logicThread.start();
                         } else if (receiveHeader.getMainCmd() == ScreenImageApi.RECORD.MAIN_CMD) {//投屏请求
                             //开启接收H264和Aac线程
+                            // TODO: 2018/7/18 wt保证流里数据读干净
                             if (receiveHeader.getStringBodylength() != 0) {
                                 mAnalyticUtils.analyticData(inputStream, receiveHeader);
                             }
@@ -221,8 +222,7 @@ public class TcpServer implements AcceptMsgThread.OnTcpChangeListener {
         if (!TextUtils.isEmpty(body)) {
             Log.e("wtt", "successMsg: " + body);
             deviceName.put(thread, body);
-        }
-        //创建一个新的map2
+            //创建一个新的map2
 //        map2 = new HashMap<AcceptMsgThread, String>();
 //        for(AcceptMsgThread key:deviceName.keySet()){
 //            if(!map2.containsValue(deviceName.get(key))){
@@ -235,11 +235,12 @@ public class TcpServer implements AcceptMsgThread.OnTcpChangeListener {
 //            return;
 //        }
 //        deviceName.put(thread, body);
-        ArrayList<OnServerStateChangeListener> mList = ScreenImageController.getInstance().mList;
-        if (mList == null) return;
-        for (OnServerStateChangeListener listener : mList) {
-            Log.e("wtt", "successMsg: "+deviceName.get(currentThread) );
-            listener.displayNameChange(deviceName.get(currentThread));
+            ArrayList<OnServerStateChangeListener> mList = ScreenImageController.getInstance().mList;
+            if (mList == null) return;
+            for (OnServerStateChangeListener listener : mList) {
+                Log.e("wtt", "successMsg: " + deviceName.get(currentThread));
+                listener.displayNameChange(deviceName.get(currentThread));
+            }
         }
     }
 
