@@ -227,7 +227,7 @@ public class MainActivity extends BaseActivity {
         @Override
         public void acceptH264TcpDisConnect(Exception e, int currentSize) {
             //客户端的连接断开...
-            Log.e(TAG, " acceptH264TcpDisConnect 客户端的连接断开..." + e.toString());
+//            Log.e(TAG, " acceptH264TcpDisConnect 客户端的连接断开..." + e.toString());
             if (currentSize < 1) {
                 runOnUiThread(() -> {
                     tvClientDeviceName.setVisibility(View.GONE);
