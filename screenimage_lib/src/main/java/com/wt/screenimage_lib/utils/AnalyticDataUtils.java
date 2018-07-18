@@ -33,10 +33,10 @@ public class AnalyticDataUtils {
         //length：复制的长度
         byte[] buff = new byte[4];
         System.arraycopy(header, 1, buff, 0, 4);
-        final short mainCmd = ByteUtil.bytesToShort(buff);       //主指令  1`5
+        final int mainCmd = ByteUtil.bytesToInt(buff);       //主指令  1`5
         buff = new byte[4];
         System.arraycopy(header, 5, buff, 0, 4);
-        final short subCmd = ByteUtil.bytesToShort(buff);    //子指令  5`9
+        final int subCmd = ByteUtil.bytesToInt(buff);    //子指令  5`9
         buff = new byte[4];
         System.arraycopy(header, 9, buff, 0, 4);
         int stringBodyLength = ByteUtil.bytesToInt(buff);//文本数据 9 ~ 13;
@@ -55,7 +55,7 @@ public class AnalyticDataUtils {
         if (receiveHeader.getStringBodylength() != 0) {
             sendBody = readByte(is, receiveHeader.getStringBodylength());
         }
-         //音视频长度
+        //音视频长度
         if (receiveHeader.getBuffSize() != 0) {
             buff = readByte(is, receiveHeader.getBuffSize());
         }
