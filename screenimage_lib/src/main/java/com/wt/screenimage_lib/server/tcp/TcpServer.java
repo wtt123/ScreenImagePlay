@@ -72,6 +72,7 @@ public class TcpServer implements AcceptMsgThread.OnTcpChangeListener {
                     serverSocket.setReuseAddress(true);
                     InetSocketAddress socketAddress = new InetSocketAddress(Constants.TCPPORT);
                     serverSocket.bind(socketAddress);
+                    serverSocket.setSoTimeout(20000);
                     acceptMsgThreadList.clear();
                     while (isAccept) {
                         //服务端接收客户端的连接请求
@@ -113,7 +114,7 @@ public class TcpServer implements AcceptMsgThread.OnTcpChangeListener {
                         }
                     }
                 } catch (Exception e) {
-
+                    Log.e("lw", "run: 走停止");
                 } finally {
                     Log.e(TAG, "TcpServer: thread close");
                     try {
