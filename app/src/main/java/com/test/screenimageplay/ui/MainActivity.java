@@ -19,6 +19,7 @@ import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -92,6 +93,7 @@ public class MainActivity extends BaseActivity {
     protected void initView() {
         mContext = this;
         EventBus.getDefault().register(this);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         RxPermissions rxPermissions = new RxPermissions(this);
         String[] permissions = {
                 Manifest.permission.ACCESS_NETWORK_STATE,
