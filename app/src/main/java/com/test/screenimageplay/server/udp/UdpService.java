@@ -55,8 +55,6 @@ public class UdpService extends Service implements OnUdpConnectListener {
     public IBinder onBind(Intent intent) {
         return null;
     }
-
-
     @Override
     public void onCreate() {
         // TODO Auto-generated method stub
@@ -65,15 +63,12 @@ public class UdpService extends Service implements OnUdpConnectListener {
         mHandler = new Handler();
         weakHandler = new WeakHandler();
     }
-
-
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         // TODO Auto-generated method stub
         initData();
         return super.onStartCommand(intent, flags, startId);
     }
-
     private void initData() {
         ip = null;
         try {
@@ -97,7 +92,6 @@ public class UdpService extends Service implements OnUdpConnectListener {
         }
     }
 
-
     @Override
     public void udpConnectSuccess() {
 
@@ -108,10 +102,7 @@ public class UdpService extends Service implements OnUdpConnectListener {
         // TODO: 2018/7/11 连接失败
         Log.e("123", "udpDisConnec: 连接失败");
         initData();
-
     }
-
-
     /**
      * 1.获取本机正在使用网络IP地址（wifi、有线）
      */

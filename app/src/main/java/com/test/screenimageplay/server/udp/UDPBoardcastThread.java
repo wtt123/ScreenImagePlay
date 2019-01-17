@@ -25,7 +25,6 @@ public class UDPBoardcastThread extends Thread {
     private WeakHandler weakHandler;
     private MulticastSocket multicastSocket;
     private OnUdpConnectListener listener;
-
     public UDPBoardcastThread(Context context, String ip, InetAddress inetAddress,
                               MulticastSocket multicastSocket, int broadcastPort, WeakHandler weakHandler, OnUdpConnectListener listener) {
         Log.e("123", "UDPBoardcastThread: zzz");
@@ -38,7 +37,6 @@ public class UDPBoardcastThread extends Thread {
         this.listener = listener;
         this.start();
     }
-
     @Override
     public void run() {
         DatagramPacket dataPacket = null;

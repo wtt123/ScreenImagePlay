@@ -93,20 +93,20 @@ public class AboutNetUtils {
 //        return info != null ? info.getSSID() : null;
 //    }
 
-    public  static boolean isNetWorkConnected(Context context) {
+    public static boolean isNetWorkConnected(Context context) {
         // TODO Auto-generated method stub
-        try{
-            ConnectivityManager connectivity = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
-            if(connectivity != null){
+        try {
+            ConnectivityManager connectivity = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+            if (connectivity != null) {
                 NetworkInfo netWorkinfo = connectivity.getActiveNetworkInfo();
-                if(netWorkinfo != null && netWorkinfo.isAvailable()){
-                    if(netWorkinfo.getState() == NetworkInfo.State.CONNECTED){
+                if (netWorkinfo != null && netWorkinfo.isAvailable()) {
+                    if (netWorkinfo.getState() == NetworkInfo.State.CONNECTED) {
                         return true;
                     }
                 }
             }
-        }catch(Exception e){
-            Log.e("UdpService : ",e.toString());
+        } catch (Exception e) {
+            Log.e("UdpService : ", e.toString());
             return false;
         }
         return false;
@@ -116,9 +116,11 @@ public class AboutNetUtils {
     public static String getLocalIpAddress() {
         String address = null;
         try {
-            for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements(); ) {
+            for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces();
+                 en.hasMoreElements(); ) {
                 NetworkInterface intf = en.nextElement();
-                for (Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements(); ) {
+                for (Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses();
+                     enumIpAddr.hasMoreElements(); ) {
                     InetAddress inetAddress = enumIpAddr.nextElement();
                     if (!inetAddress.isLoopbackAddress()) {
                         address = inetAddress.getHostAddress().toString();
